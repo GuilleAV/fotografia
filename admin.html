@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Adrián Morales</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="admin-container">
+    <aside class="admin-sidebar">
+      <div class="admin-logo">
+        <h2><i class="fas fa-camera"></i> Admin Panel</h2>
+        <p>Panel de Control</p>
+      </div>
+      <ul class="admin-menu">
+        <li class="active" onclick="showAdminSection('dashboard')">
+          <i class="fas fa-chart-line"></i> Dashboard
+        </li>
+        <li onclick="showAdminSection('upload')">
+          <i class="fas fa-upload"></i> Subir Foto
+        </li>
+        <li onclick="showAdminSection('list')">
+          <i class="fas fa-images"></i> Listar Fotos
+        </li>
+        <li onclick="showAdminSection('categories')">
+          <i class="fas fa-folder"></i> Categorías
+        </li>
+        <li onclick="logout()">
+          <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+        </li>
+      </ul>
+    </aside>
+
+    <main class="admin-content">
+      <div id="dashboardSection" class="admin-section active">
+        <div class="admin-header">
+          <h1>Dashboard</h1>
+        </div>
+        <div class="stats-container">
+          <div class="stat-card">
+            <div class="stat-icon blue"><i class="fas fa-images"></i></div>
+            <div class="stat-info"><h3 id="totalPhotos">55</h3><p>Total de Fotos</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green"><i class="fas fa-folder"></i></div>
+            <div class="stat-info"><h3 id="totalCats">4</h3><p>Categorías</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange"><i class="fas fa-star"></i></div>
+            <div class="stat-info"><h3 id="featuredCount">12</h3><p>Fotos Destacadas</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon purple"><i class="fas fa-eye"></i></div>
+            <div class="stat-info"><h3 id="visits">2.4K</h3><p>Visitas Totales</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="uploadSection" class="admin-section">
+        <div class="admin-header"><h1>Subir Nueva Foto</h1></div>
+        <div id="successMsg" class="success-message"><i class="fas fa-check-circle"></i><span>¡Foto guardada exitosamente!</span></div>
+        <div class="upload-form">
+          <form id="uploadPhotoForm">
+            <div class="form-row">
+              <div class="form-group"><label>Título *</label><input type="text" id="photoTitle" placeholder="Título de la foto" required></div>
+              <div class="form-group"><label>Categoría *</label><select id="photoCategory" required><option value="">Seleccionar categoría</option><option value="naturaleza">Naturaleza</option><option value="retratos">Retratos</option><option value="fiestas">Fiestas</option><option value="viajes">Viajes</option></select></div>
+            </div>
+            <div class="form-group"><label>Descripción</label><textarea id="photoDescription" rows="4" placeholder="Descripción detallada de la foto"></textarea></div>
+            <div class="form-group">
+              <label>Seleccionar Archivo(s) *</label>
+              <div class="file-upload-area" id="dropArea">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p><strong>Arrastra tus fotos aquí</strong></p>
+                <p>o haz clic para seleccionar</p>
+                <input type="file" id="photoFile" accept="image/*" multiple>
+              </div>
+            </div>
+            <div id="previewContainer" class="preview-container"></div>
+            <div class="checkbox-group">
+              <input type="checkbox" id="featured"><label for="featured">Marcar como foto destacada</label>
+            </div>
+            <div>
+              <button type="submit" class="save-btn"><i class="fas fa-save"></i> Guardar Foto</button>
+              <button type="button" class="cancel-btn" onclick="clearForm()"> <i class="fas fa-times"></i> Limpiar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div id="listSection" class="admin-section">
+        <div class="admin-header"><h1>Mis Fotos</h1></div>
+        <div class="photos-table">
+          <div class="table-controls">
+            <div class="search-box"><i class="fas fa-search"></i><input type="text" placeholder="Buscar fotos..." onkeyup="searchPhotos(this.value)"></div>
+            <div class="view-toggle"><button class="view-btn active" onclick="toggleView('grid')"><i class="fas fa-th"></i></button><button class="view-btn" onclick="toggleView('list')"><i class="fas fa-list"></i></button></div>
+          </div>
+          <div class="photo-grid" id="photoGridView">
+            <!-- Sample photo cards -->
+            <div class="photo-card"><img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300" alt="Foto 1"><div class="photo-card-info"><span class="photo-badge featured">★ Destacada</span><h4>Montañas Majestuosas</h4><p>Categoría: Naturaleza</p><p style="font-size:0.75rem;color:#999;">Subida: 15 Oct 2024</p><div class="photo-actions"><button class="edit-btn"><i class="fas fa-edit"></i> Editar</button><button class="delete-btn"><i class="fas fa-trash"></i> Eliminar</button></div></div></div>
+            <div class="photo-card"><img src="https://images.unsplash.com/photo-1519741497674-611481863552?w=300" alt="Foto 2"><div class="photo-card-info"><span class="photo-badge">Naturaleza</span><h4>Retrato Profesional</h4><p>Categoría: Retratos</p><p style="font-size:0.75rem;color:#999;">Subida: 12 Oct 2024</p><div class="photo-actions"><button class="edit-btn"><i class="fas fa-edit"></i> Editar</button><button class="delete-btn"><i class="fas fa-trash"></i> Eliminar</button></div></div></div>
+            <div class="photo-card"><img src="https://images.unsplash.com/photo-1530789253388-582c481c54b0?w=300" alt="Foto 3"><div class="photo-card-info"><span class="photo-badge featured">★ Destacada</span><h4>Momento Especial</h4><p>Categoría: Fiestas</p><p style="font-size:0.75rem;color:#999;">Subida: 10 Oct 2024</p><div class="photo-actions"><button class="edit-btn"><i class="fas fa-edit"></i> Editar</button><button class="delete-btn"><i class="fas fa-trash"></i> Eliminar</button></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="categoriesSection" class="admin-section">
+        <div class="admin-header"><h1>Gestión de Categorías</h1></div>
+        <div class="category-list">
+          <button class="add-category-btn" onclick="alert('Agregar nueva categoría (simulación)')"><i class="fas fa-plus"></i> Agregar Nueva Categoría</button>
+          <div class="category-item"><div><h4>Naturaleza</h4><p style="color:#777;font-size:0.9rem;">12 fotos</p></div><div><button class="edit-btn" style="margin-right:0.5rem;"><i class="fas fa-edit"></i> Editar</button><button class="delete-btn"><i class="fas fa-trash"></i> Eliminar</button></div></div>
+          <div class="category-item"><div><h4>Retratos</h4><p style="color:#777;font-size:0.9rem;">8 fotos</p></div><div><button class="edit-btn" style="margin-right:0.5rem;"><i class="fas fa-edit"></i> Editar</button><button class="delete-btn"><i class="fas fa-trash"></i> Eliminar</button></div></div>
+          <div class="category-item"><div><h4>Fiestas</h4><p style="color:#777;font-size:0.9rem;">15 fotos</p></div><div><button class="edit-btn" style="margin-right:0.5rem;"><i class="fas fa-edit"></i> Editar</button><button class="delete-btn"><i class="fas fa-trash"></i> Eliminar</button></div></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

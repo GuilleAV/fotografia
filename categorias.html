@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Categorías - Adrián Morales</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="index.html" class="logo">Adrián Morales</a>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="categorias.html">Categorías</a></li>
+        <li><a href="index.html#contacto">Contacto</a></li>
+        <li><a href="login.html">Login</a></li>
+      </ul>
+      <div class="menu-toggle" onclick="toggleMenu()">
+        <span></span><span></span><span></span>
+      </div>
+    </nav>
+  </header>
+
+  <section class="categories-section">
+    <h2 class="section-title">Explora por Categorías</h2>
+    <div class="category-filters">
+      <button class="category-btn active" onclick="filterCategory('todas', this)">Todas</button>
+      <button class="category-btn" onclick="filterCategory('naturaleza', this)">Naturaleza</button>
+      <button class="category-btn" onclick="filterCategory('fiestas', this)">Fiestas</button>
+      <button class="category-btn" onclick="filterCategory('retratos', this)">Retratos</button>
+      <button class="category-btn" onclick="filterCategory('viajes', this)">Viajes</button>
+    </div>
+    <div class="gallery-grid" id="categoryGallery">
+      <div class="gallery-item" data-category="naturaleza">
+        <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400" alt="Montaña">
+        <div class="gallery-overlay"><h3>Picos Nevados</h3><p>Naturaleza</p></div>
+      </div>
+      <div class="gallery-item" data-category="retratos">
+        <img src="https://images.unsplash.com/photo-1519741497674-611481863552?w=400" alt="Retrato">
+        <div class="gallery-overlay"><h3>Retrato Artístico</h3><p>Retratos</p></div>
+      </div>
+      <div class="gallery-item" data-category="fiestas">
+        <img src="https://images.unsplash.com/photo-1530789253388-582c481c54b0?w=400" alt="Boda">
+        <div class="gallery-overlay"><h3>Celebraciones</h3><p>Fiestas</p></div>
+      </div>
+      <div class="gallery-item" data-category="viajes">
+        <img src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=400" alt="Viaje">
+        <div class="gallery-overlay"><h3>Atardecer en el Lago</h3><p>Viajes</p></div>
+      </div>
+      <div class="gallery-item" data-category="naturaleza">
+        <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400" alt="Bosque">
+        <div class="gallery-overlay"><h3>Sendero del Bosque</h3><p>Naturaleza</p></div>
+      </div>
+      <div class="gallery-item" data-category="retratos">
+        <img src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=400" alt="Retrato mujer">
+        <div class="gallery-overlay"><h3>Mirada Profunda</h3><p>Retratos</p></div>
+      </div>
+      <div class="gallery-item" data-category="viajes">
+        <img src="https://images.unsplash.com/photo-1500835556837-99ac94a94552?w=400" alt="Playa">
+        <div class="gallery-overlay"><h3>Paraíso Tropical</h3><p>Viajes</p></div>
+      </div>
+      <div class="gallery-item" data-category="fiestas">
+        <img src="https://images.unsplash.com/photo-1519167758481-83f29da8c6b4?w=400" alt="Fiesta">
+        <div class="gallery-overlay"><h3>Noche Mágica</h3><p>Fiestas</p></div>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 3rem;">
+      <a href="index.html" class="back-btn">← Volver al Inicio</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-info">
+        <h3>Adrián Morales</h3>
+        <p>Fotógrafo Profesional</p>
+      </div>
+      <div class="social-links">
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-facebook"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-youtube"></i></a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; <span class="year"></span> Adrián Morales. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
