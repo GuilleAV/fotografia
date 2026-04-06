@@ -1,0 +1,215 @@
+import { Component, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../core/services/auth.service';
+
+@Component({
+  selector: 'app-login',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterLink],
+  template: `
+    <section class="login-section">
+      <div class="login-card">
+        <div class="login-header">
+          <h1>📷 FotoPortfolio</h1>
+          <p>Iniciá sesión para gestionar tus fotos</p>
+        </div>
+
+        <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+          @if (error()) {
+            <div class="alert-error">{{ error() }}</div>
+          }
+
+          <div class="form-group">
+            <label for="username">Usuario</label>
+            <input
+              id="username"
+              type="text"
+              [(ngModel)]="credentials.username"
+              name="username"
+              required
+              placeholder="Tu usuario"
+              autocomplete="username"
+              inputmode="text"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="password">Contraseña</label>
+            <input
+              id="password"
+              type="password"
+              [(ngModel)]="credentials.password"
+              name="password"
+              required
+              placeholder="Tu contraseña"
+              autocomplete="current-password"
+            />
+          </div>
+
+          <div class="form-actions">
+            <a routerLink="/recuperar" class="link-forgot">¿Olvidaste tu contraseña?</a>
+          </div>
+
+          <button type="submit" class="btn-submit" [disabled]="loading()">
+            @if (loading()) {
+              <span class="spinner"></span> Ingresando...
+            } @else {
+              Ingresar
+            }
+          </button>
+        </form>
+      </div>
+    </section>
+  `,
+  styles: [`
+    /* Mobile First: diseño base para pantallas chicas */
+    .login-section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      background: #f8f9fa;
+    }
+    .login-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 2rem 1.5rem;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .login-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .login-header h1 {
+      margin: 0 0 0.5rem;
+      color: #1a1a2e;
+      font-size: 1.6rem;
+    }
+    .login-header p {
+      margin: 0;
+      color: #666;
+      font-size: 0.95rem;
+    }
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+      color: #333;
+      font-size: 0.9rem;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      box-sizing: border-box;
+      background: #fafafa;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #e94560;
+      box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1);
+      background: #fff;
+    }
+    .form-actions {
+      text-align: right;
+      margin-bottom: 1.5rem;
+    }
+    .link-forgot {
+      color: #e94560;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    .link-forgot:hover { text-decoration: underline; }
+    .btn-submit {
+      width: 100%;
+      padding: 0.9rem;
+      background: #e94560;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .btn-submit:hover:not(:disabled) { background: #d63851; }
+    .btn-submit:active:not(:disabled) { transform: scale(0.98); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+    .alert-error {
+      background: #fde8e8;
+      color: #c0392b;
+      padding: 0.8rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      border-left: 4px solid #e74c3c;
+    }
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Tablet y escritorio */
+    @media (min-width: 600px) {
+      .login-card {
+        padding: 2.5rem;
+      }
+      .login-header h1 {
+        font-size: 1.8rem;
+      }
+    }
+  `]
+})
+export class LoginComponent {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+
+  credentials = { username: '', password: '' };
+  loading = signal(false);
+  error = signal<string | null>(null);
+
+  onSubmit() {
+    if (!this.credentials.username || !this.credentials.password) {
+      this.error.set('Completá todos los campos');
+      return;
+    }
+
+    this.loading.set(true);
+    this.error.set(null);
+
+    this.authService.login(this.credentials).subscribe({
+      next: () => {
+        const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
+        this.router.navigateByUrl(returnUrl);
+      },
+      error: (err) => {
+        this.error.set(err.message || 'Credenciales inválidas');
+        this.loading.set(false);
+      },
+    });
+  }
+}
