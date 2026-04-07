@@ -2,7 +2,7 @@
 <section class="hero-carousel">
   @if (carouselSlides().length > 0) {
     <div class="carousel-container">
-      @for (slide of carouselSlides(); track trackByFoto($index, slide); let i = $index) {
+      @for (slide of carouselSlides(); track slide.idFoto; let i = $index) {
         <div
           class="carousel-slide"
           [class.active]="i === currentSlide()"
@@ -30,12 +30,12 @@
 
       <!-- Dots -->
       <div class="carousel-dots">
-        @for (slide of carouselSlides(); track trackByFoto($index, slide); let i = $index) {
+        @for (slide of carouselSlides(); track slide.idFoto; let i = $index) {
           <button
             class="carousel-dot"
             [class.active]="i === currentSlide()"
             (click)="goToSlide(i)"
-            aria-label="Ir a slide {{ i + 1 }}"
+            [attr.aria-label]="'Ir a slide ' + (i + 1)"
           ></button>
         }
       </div>
