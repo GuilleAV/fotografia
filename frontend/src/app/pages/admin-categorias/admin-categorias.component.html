@@ -1,0 +1,125 @@
+<section class="admin-section">
+  <div class="container">
+    <h1>Gestionar Categorías</h1>
+
+    <!-- Formulario -->
+    <div class="card form-card">
+      <h2>{{ isEditing ? 'Editar Categoría' : 'Nueva Categoría' }}</h2>
+
+      @if (error()) {
+        <div class="alert-error">{{ error() }}</div>
+      }
+      @if (success()) {
+        <div class="alert-success">{{ success() }}</div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="guardar()">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre</label>
+            <input type="text" formControlName="nombre" />
+            @if (form.get('nombre')?.invalid && form.get('nombre')?.touched) {
+              <span class="field-error">El nombre es obligatorio</span>
+            }
+          </div>
+          <div class="form-group">
+            <label>Slug (URL)</label>
+            <input type="text" formControlName="slug" placeholder="ej: paisajes" />
+            @if (form.get('slug')?.invalid && form.get('slug')?.touched) {
+              <span class="field-error">El slug es obligatorio</span>
+            }
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Icono</label>
+            <select formControlName="icono">
+              <option value="">Sin icono</option>
+              <option value="fa-solid fa-camera">📷 Cámara</option>
+              <option value="fa-solid fa-mountain-sun">🏔️ Montañas</option>
+              <option value="fa-solid fa-city">🏙️ Ciudad</option>
+              <option value="fa-solid fa-user">👤 Persona</option>
+              <option value="fa-solid fa-paw">🐾 Animales</option>
+              <option value="fa-solid fa-utensils">🍽️ Comida</option>
+              <option value="fa-solid fa-music">🎵 Música</option>
+              <option value="fa-solid fa-heart">❤️ Amor</option>
+              <option value="fa-solid fa-star">⭐ Estrellas</option>
+              <option value="fa-solid fa-champagne-glasses">🥂 Celebración</option>
+              <option value="fa-solid fa-leaf">🌿 Naturaleza</option>
+              <option value="fa-solid fa-baby">👶 Bebés</option>
+              <option value="fa-solid fa-ring">💍 Bodas</option>
+              <option value="fa-solid fa-futbol">⚽ Deportes</option>
+              <option value="fa-solid fa-palette">🎨 Arte</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Color</label>
+            <input type="color" formControlName="color" style="height: 42px; width: 100%;" />
+          </div>
+          <div class="form-group">
+            <label>Orden</label>
+            <input type="number" formControlName="orden" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="activo" />
+            Categoría Activa
+          </label>
+        </div>
+        <div class="form-actions">
+          @if (isEditing) {
+            <button type="button" class="btn-cancel" (click)="cancelar()">Cancelar</button>
+          }
+          <button type="submit" class="btn-primary">{{ isEditing ? 'Actualizar' : 'Crear' }}</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Lista -->
+    <div class="card list-card">
+      <h2>Categorías Existentes</h2>
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Slug</th>
+              <th>Orden</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (cat of categorias(); track cat.idCategoria) {
+              <tr>
+                <td>
+                  @if (cat.icono) {
+                    <i class="icon {{ cat.icono }}"></i>
+                  }
+                  {{ cat.nombre }}
+                </td>
+                <td>{{ cat.slug }}</td>
+                <td>{{ cat.orden }}</td>
+                <td>
+                  <span class="badge" [class.badge-active]="cat.activo" [class.badge-inactive]="!cat.activo">
+                    {{ cat.activo ? 'Activa' : 'Inactiva' }}
+                  </span>
+                </td>
+                <td class="actions">
+                  <button class="btn-sm btn-edit" (click)="editar(cat)" title="Editar">✏️</button>
+                  <button class="btn-sm btn-toggle" (click)="toggleEstado(cat)" title="Activar/Desactivar">
+                    {{ cat.activo ? '🔒' : '🔓' }}
+                  </button>
+                  <button class="btn-sm btn-delete" (click)="eliminar(cat.idCategoria)" title="Eliminar">🗑️</button>
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="5" class="empty">No hay categorías creadas.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>

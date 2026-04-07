@@ -1,0 +1,49 @@
+/* === MOBILE FIRST === */
+.site-footer {
+  background: #1a1a2e;
+  color: #aaa;
+  padding: 2rem 1rem 1rem;
+  margin-top: auto;
+}
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+.footer-section h3, .footer-section h4 {
+  color: #fff;
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+.footer-section p {
+  margin: 0.25rem 0;
+  font-size: 0.85rem;
+}
+.social-links {
+  display: flex;
+  gap: 1rem;
+}
+.social-links a {
+  font-size: 1.5rem;
+  text-decoration: none;
+  transition: transform 0.2s;
+}
+.social-links a:hover { transform: scale(1.2); }
+.footer-bottom {
+  text-align: center;
+  padding-top: 1.5rem;
+  margin-top: 1.5rem;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  font-size: 0.8rem;
+}
+
+/* === TABLET (min-width: 600px) === */
+@media (min-width: 600px) {
+  .footer-content {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+  .site-footer { padding: 2.5rem 2rem 1rem; }
+}

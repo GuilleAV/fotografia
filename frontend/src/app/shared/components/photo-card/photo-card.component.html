@@ -1,0 +1,31 @@
+<div class="photo-card" [routerLink]="['/foto', foto().idFoto]">
+  <div class="photo-wrapper">
+    <img
+      [src]="foto().rutaWeb || foto().urlCompleta || 'assets/placeholder.jpg'"
+      [alt]="foto().titulo"
+      loading="lazy"
+    />
+    @if (foto().estado === 'PENDIENTE') {
+      <span class="badge badge-pending">Pendiente</span>
+    } @else if (foto().estado === 'RECHAZADA') {
+      <span class="badge badge-rejected">Rechazada</span>
+    } @else if (foto().destacada) {
+      <span class="badge badge-featured">⭐ Destacada</span>
+    }
+  </div>
+  <div class="photo-info">
+    <h3>{{ foto().titulo }}</h3>
+    @if (foto().categoriaNombre) {
+      <span class="category" [style.background]="foto().categoriaColor || '#555'">
+        {{ foto().categoriaNombre }}
+      </span>
+    }
+    @if (foto().usuarioNombre) {
+      <p class="photographer">📷 {{ foto().usuarioNombre }}</p>
+    }
+    <div class="photo-meta">
+      <span>👁 {{ foto().visitas }}</span>
+      <span>📅 {{ foto().fechaSubida | date:'shortDate' }}</span>
+    </div>
+  </div>
+</div>

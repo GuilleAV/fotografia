@@ -27,8 +27,6 @@ public class UsuarioDTO implements Serializable {
     private LocalDateTime ultimaSesion;
     private Integer cantidadFotos;
 
-    private transient String password;
-
     // Constructores
     public UsuarioDTO() {
     }
@@ -150,13 +148,5 @@ public class UsuarioDTO implements Serializable {
 
     public void setCantidadFotos(Integer cantidadFotos) {
         this.cantidadFotos = cantidadFotos;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 }

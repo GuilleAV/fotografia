@@ -1,0 +1,93 @@
+<section class="admin-section">
+  <div class="container">
+    <h1>Panel de Administración</h1>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button
+        [class.active]="activeTab() === 'pendientes'"
+        (click)="setTab('pendientes')"
+      >
+        Pendientes ({{ pendientes().length }})
+      </button>
+      <button
+        [class.active]="activeTab() === 'todas'"
+        (click)="setTab('todas')"
+      >
+        Todas las Fotos ({{ todas().length }})
+      </button>
+    </div>
+
+    <!-- Pendientes -->
+    @if (activeTab() === 'pendientes') {
+      <div class="moderation-queue">
+        @for (foto of pendientes(); track foto.idFoto) {
+          <div class="moderation-card">
+            <div class="moderation-preview">
+              <img [src]="foto.rutaWeb || foto.urlCompleta || 'assets/placeholder.jpg'" [alt]="foto.titulo" />
+            </div>
+            <div class="moderation-info">
+              <h3>{{ foto.titulo }}</h3>
+              @if (foto.descripcion) {
+                <p>{{ foto.descripcion }}</p>
+              }
+              <div class="meta">
+                <span>📷 {{ foto.usuarioNombre || 'Desconocido' }}</span>
+                <span>📅 {{ foto.fechaSubida | date:'short' }}</span>
+                <span>📂 {{ foto.categoriaNombre }}</span>
+              </div>
+              <div class="actions">
+                <button class="btn-approve" (click)="aprobar(foto)">
+                  ✓ Aprobar
+                </button>
+                <button class="btn-reject" (click)="rechazar(foto)">
+                  ✗ Rechazar
+                </button>
+              </div>
+            </div>
+          </div>
+        } @empty {
+          <p class="empty">No hay fotos pendientes de moderación 🎉</p>
+        }
+      </div>
+    }
+
+    <!-- Todas -->
+    @if (activeTab() === 'todas') {
+      <div class="table-wrapper">
+        <table class="photo-table">
+          <thead>
+            <tr>
+              <th>Foto</th>
+              <th>Título</th>
+              <th>Fotógrafo</th>
+              <th>Categoría</th>
+              <th>Estado</th>
+              <th>Visitas</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (foto of todas(); track foto.idFoto) {
+              <tr>
+                <td>
+                  <img class="table-thumb" [src]="foto.rutaThumbnail || 'assets/placeholder.jpg'" [alt]="foto.titulo" />
+                </td>
+                <td>{{ foto.titulo }}</td>
+                <td>{{ foto.usuarioNombre || '—' }}</td>
+                <td>{{ foto.categoriaNombre || '—' }}</td>
+                <td>
+                  <span class="status-badge" [class]="'status-' + foto.estado.toLowerCase()">
+                    {{ foto.estado }}
+                  </span>
+                </td>
+                <td>{{ foto.visitas }}</td>
+                <td>{{ foto.fechaSubida | date:'shortDate' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</section>

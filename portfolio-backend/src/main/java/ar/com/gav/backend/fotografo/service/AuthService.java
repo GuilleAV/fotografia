@@ -13,15 +13,16 @@ import ar.com.gav.backend.fotografo.security.JwtUtil;
 import ar.com.gav.backend.fotografo.security.PasswordUtil;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 @Stateless
 public class AuthService {
+
+    private static final Logger LOG = Logger.getLogger(AuthService.class.getName());
 
     @Inject
     private UsuarioDAO usuarioDAO;
@@ -39,14 +40,30 @@ public class AuthService {
     private EmailService emailService;
 
     public LoginResponseDTO login(LoginRequestDTO request, String ip, String userAgent) throws Exception {
+        LOG.info("=== AUTH SERVICE LOGIN ===");
+        LOG.info("Looking up user: " + request.getUsername());
+
         Usuario usuario = usuarioDAO.buscarPorUsername(request.getUsername());
-        if (usuario == null || !usuario.getActivo()) {
+        if (usuario == null) {
+            LOG.warning("User NOT FOUND: " + request.getUsername());
             throw new Exception("Usuario no encontrado o inactivo");
         }
-        if (!PasswordUtil.verificarPassword(request.getPassword(), usuario.getPassword())) {
+        if (!usuario.getActivo()) {
+            LOG.warning("User INACTIVE: " + request.getUsername());
+            throw new Exception("Usuario no encontrado o inactivo");
+        }
+        LOG.info("User found: " + usuario.getNombreUsuario() + " (rol: " + usuario.getRol() + ", activo: " + usuario.getActivo() + ")");
+
+        boolean passwordOk = PasswordUtil.verificarPassword(request.getPassword(), usuario.getPassword());
+        if (!passwordOk) {
+            LOG.warning("INVALID PASSWORD for user: " + request.getUsername());
             throw new Exception("Credenciales inválidas");
         }
+        LOG.info("Password verified OK");
+
         String token = jwtUtil.generarToken(usuario.getNombreUsuario());
+        LOG.info("JWT generated for: " + usuario.getNombreUsuario());
+
         // Guardamos la sesión en base de datos
         SesionActiva sesion = new SesionActiva();
         sesion.setUsuario(usuario);
@@ -56,38 +73,66 @@ public class AuthService {
         sesion.setFechaInicio(LocalDateTime.now());
         sesion.setFechaExpiracion(LocalDateTime.now().plusHours(24));
         sesion.setActiva(true);
-        sesionActivaDAO.crear(sesion);
+
+        LOG.info("Creating session in DB - IP: " + ip + ", Expires: " + sesion.getFechaExpiracion());
+        try {
+            sesionActivaDAO.crear(sesion);
+            LOG.info("Session SAVED to DB successfully, id: " + sesion.getIdSesion());
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "FAILED to save session to DB", e);
+            throw new Exception("Error al guardar la sesión: " + e.getMessage(), e);
+        }
+
         // Creamos y devolvemos el LoginResponseDTO
         LoginResponseDTO response = new LoginResponseDTO();
         response.setToken(token);
         response.setTokenType("Bearer");
-        response.setExpiresIn(24L * 60 * 60);  // 24 horas en segundos
+        response.setExpiresIn(24L * 60 * 60);
         response.setExpiresAt(LocalDateTime.now().plusHours(24));
-        response.setUsuario(new UsuarioDTO(usuario));  // Convierte el Usuario a UsuarioDTO
+        response.setUsuario(new UsuarioDTO(usuario));
         response.setMensaje("Login exitoso");
+
+        LOG.info("Login complete for: " + usuario.getNombreUsuario());
         return response;
     }
 
 
     public void logout(String token) {
+        LOG.info("=== LOGOUT ===");
+        LOG.info("Invalidating token: " + token.substring(0, Math.min(20, token.length())) + "...");
         SesionActiva sesion = sesionActivaDAO.buscarPorToken(token);
         if (sesion != null) {
             sesion.setActiva(false);
             sesionActivaDAO.actualizar(sesion);
+            LOG.info("Session invalidated for user: " + sesion.getUsuario().getNombreUsuario());
+        } else {
+            LOG.warning("Session NOT FOUND for token");
         }
     }
 
 
     public void solicitarRecuperacion(String email) {
+        LOG.info("=== PASSWORD RECOVERY ===");
+        LOG.info("Email: " + email);
         Usuario usuario = usuarioDAO.buscarPorEmail(email);
-        if (usuario == null) return;
+        if (usuario == null) {
+            LOG.info("Email not found: " + email + " (returning silently for security)");
+            return;
+        }
         RecuperacionPassword rec = new RecuperacionPassword();
         rec.setUsuario(usuario);
         rec.setToken(UUID.randomUUID().toString());
         rec.setExpiracion(LocalDateTime.now().plusHours(1));
         rec.setUsado(false);
         recuperacionDAO.crear(rec);
+        LOG.info("Recovery token created for user: " + usuario.getNombreUsuario());
+
         // Enviar email real de recuperación
-        emailService.enviarRecuperacionPassword(email, rec.getToken());
+        try {
+            emailService.enviarRecuperacionPassword(email, rec.getToken());
+            LOG.info("Recovery email sent to: " + email);
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Failed to send recovery email to: " + email, e);
+        }
     }
 }

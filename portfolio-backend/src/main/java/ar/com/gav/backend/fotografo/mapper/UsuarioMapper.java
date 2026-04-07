@@ -32,10 +32,6 @@ public class UsuarioMapper {
         entity.setRol(dto.getRol());
         entity.setActivo(dto.getActivo());
         entity.setFotoPerfil(dto.getFotoPerfil());
-        // Solo actualizar password si viene informada
-        if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
-            entity.setPassword(dto.getPassword());
-        }
         return entity;
     }
 }

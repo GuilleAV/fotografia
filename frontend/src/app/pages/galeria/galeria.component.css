@@ -1,0 +1,57 @@
+/* === MOBILE FIRST === */
+.galeria-section { padding: 1.5rem 1rem; min-height: 60vh; }
+.container { max-width: 1200px; margin: 0 auto; }
+.page-title {
+  text-align: center;
+  font-size: 1.6rem;
+  color: #1a1a2e;
+  margin-bottom: 1.5rem;
+}
+.filters {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+select {
+  width: 100%;
+  max-width: 300px;
+  padding: 0.85rem 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 1rem;
+  background: #fff;
+  cursor: pointer;
+}
+select:focus { outline: none; border-color: #e94560; }
+.photo-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+.card-skeleton {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.error, .empty {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+  font-size: 1rem;
+}
+.error { color: #e74c3c; }
+
+/* === TABLET (min-width: 600px) === */
+@media (min-width: 600px) {
+  .galeria-section { padding: 2rem 1.5rem; }
+  .page-title { font-size: 1.8rem; margin-bottom: 2rem; }
+  .photo-grid { grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
+}
+
+/* === ESCRITORIO (min-width: 900px) === */
+@media (min-width: 900px) {
+  .galeria-section { padding: 2rem; }
+  .page-title { font-size: 2rem; }
+  .photo-grid { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+}

@@ -1,0 +1,40 @@
+<header class="site-header">
+  <nav class="nav-container">
+    <a routerLink="/" class="logo" (click)="menuOpen = false">
+      <span class="logo-icon">📷</span>
+      <span class="logo-text">FotoPortfolio</span>
+    </a>
+
+    <button class="menu-toggle" (click)="menuOpen = !menuOpen" aria-label="Menú">
+      <span></span><span></span><span></span>
+    </button>
+
+    <ul class="nav-links" [class.open]="menuOpen">
+      <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="menuOpen = false">Inicio</a></li>
+      <li><a routerLink="/galeria" routerLinkActive="active" (click)="menuOpen = false">Galería</a></li>
+
+      @if (auth.isLoggedIn()) {
+        <!-- Visible para TODOS los logueados (Admin y Fotógrafos) -->
+        <li><a routerLink="/dashboard" routerLinkActive="active" (click)="menuOpen = false">Subir Fotos</a></li>
+        
+        @if (auth.isAdmin()) {
+          <li><a routerLink="/admin" routerLinkActive="active" (click)="menuOpen = false">Gestión de Fotos</a></li>
+          <li><a routerLink="/admin/categorias" routerLinkActive="active" (click)="menuOpen = false">Categorías</a></li>
+          <li><a routerLink="/admin/usuarios" routerLinkActive="active" (click)="menuOpen = false">Usuarios</a></li>
+        }
+        <li class="user-menu">
+          <span class="user-name">{{ auth.user()?.nombreCompleto }}</span>
+          <button class="btn-logout" (click)="auth.logout()">
+            Salir
+          </button>
+        </li>
+      } @else {
+        <li><a routerLink="/login" routerLinkActive="active" class="btn-login" (click)="menuOpen = false">Iniciar Sesión</a></li>
+      }
+    </ul>
+  </nav>
+</header>
+
+@if (menuOpen) {
+  <div class="overlay" (click)="menuOpen = false"></div>
+}

@@ -1,0 +1,50 @@
+<section class="recuperar-section">
+  <div class="recuperar-card">
+    <div class="recuperar-header">
+      <h1>🔑 Recuperar Contraseña</h1>
+      <p>Ingresá tu email y te enviamos un link para crear una nueva contraseña.</p>
+    </div>
+
+    @if (enviado()) {
+      <div class="success-box">
+        <div class="success-icon">✅</div>
+        <h3>¡Email enviado!</h3>
+        <p>Revisá tu bandeja de entrada (y spam) para encontrar el link de recuperación.</p>
+        <a routerLink="/login" class="btn-back">← Volver al Login</a>
+      </div>
+    } @else {
+      <form (ngSubmit)="onSubmit()" #form="ngForm">
+        @if (error()) {
+          <div class="alert-error">{{ error() }}</div>
+        }
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            [(ngModel)]="email"
+            name="email"
+            required
+            email
+            placeholder="tu@email.com"
+            inputmode="email"
+            autocomplete="email"
+          />
+        </div>
+
+        <button type="submit" class="btn-submit" [disabled]="loading()">
+          @if (loading()) {
+            <span class="spinner"></span> Enviando...
+          } @else {
+            Enviar Link de Recuperación
+          }
+        </button>
+
+        <div class="form-footer">
+          <a routerLink="/login" class="link-back">← Volver al Login</a>
+        </div>
+      </form>
+    }
+  </div>
+</section>

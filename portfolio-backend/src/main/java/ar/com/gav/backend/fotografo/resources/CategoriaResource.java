@@ -70,7 +70,7 @@ public class CategoriaResource {
     @Secured
     public Response eliminar(@PathParam("id") Integer id) {
         try {
-            categoriaService.eliminar(id.longValue());
+            categoriaService.eliminar(id);
             return Response.noContent().build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();

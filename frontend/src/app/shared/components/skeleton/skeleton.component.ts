@@ -1,31 +1,14 @@
-import { Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
   selector: 'app-skeleton',
   standalone: true,
-  imports: [CommonModule],
-  template: `
-    <div class="skeleton" [class.skeleton-circle]="circle" [style.width]="width" [style.height]="height" [style.border-radius]="circle ? '50%' : '4px'"></div>
-  `,
-  styles: [`
-    .skeleton {
-      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.5s infinite;
-      border-radius: 4px;
-    }
-    .skeleton-circle {
-      border-radius: 50%;
-    }
-    @keyframes shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-  `]
+  templateUrl: './skeleton.component.html',
+  styleUrls: ['./skeleton.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SkeletonComponent {
-  @Input() width = '100%';
-  @Input() height = '1rem';
-  @Input() circle = false;
+  width = input('100%');
+  height = input('1rem');
+  circle = input(false);
 }

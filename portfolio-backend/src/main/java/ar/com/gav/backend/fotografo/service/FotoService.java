@@ -16,10 +16,14 @@ import javax.persistence.EntityManager;
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @Stateless
 public class FotoService extends BaseService<Foto> {
+
+    private static final Logger LOG = Logger.getLogger(FotoService.class.getName());
 
     @Inject
     private ImageProcessor imageProcessor;
@@ -129,27 +133,35 @@ public class FotoService extends BaseService<Foto> {
     public FileUploadResponseDTO subirFoto(InputStream archivoStream, String nombreArchivo,
                                            String titulo, String descripcion, Integer idCategoria,
                                            String username) throws Exception {
+        LOG.info("=== SUBIR FOTO === User: " + username + ", File: " + nombreArchivo);
         // Obtener usuario
         Usuario usuario = usuarioService.buscarPorUsernameEntity(username);
         if (usuario == null) {
+            LOG.warning("User NOT FOUND for upload: " + username);
             throw new Exception("Usuario no encontrado");
         }
+        LOG.info("User found: " + usuario.getNombreUsuario() + " (id: " + usuario.getId() + ")");
 
         // Obtener categoría
         Categoria categoria = em.find(Categoria.class, idCategoria);
         if (categoria == null) {
+            LOG.warning("Category NOT FOUND: " + idCategoria);
             throw new Exception("Categoría no encontrada");
         }
+        LOG.info("Category found: " + categoria.getNombre());
 
         // Crear directorio del usuario
         String userUploadDir = UPLOAD_DIR + File.separator + username;
         File dir = new File(userUploadDir);
         if (!dir.exists()) {
             dir.mkdirs();
+            LOG.info("Created upload directory: " + userUploadDir);
         }
 
         // Procesar imagen (genera original, thumbnail, web)
+        LOG.info("Processing image...");
         String[] rutas = imageProcessor.processImage(archivoStream, nombreArchivo, userUploadDir);
+        LOG.info("Image processed - Original: " + rutas[0] + ", Thumbnail: " + rutas[1] + ", Web: " + rutas[2]);
 
         // Crear entidad Foto
         Foto foto = new Foto();
@@ -167,8 +179,10 @@ public class FotoService extends BaseService<Foto> {
         // Obtener tamaño del archivo original
         File originalFile = new File(userUploadDir + File.separator + rutas[0]);
         foto.setTamanioKb((int) (originalFile.length() / 1024));
+        LOG.info("File size: " + foto.getTamanioKb() + " KB");
 
         super.crear(foto);
+        LOG.info("Photo SAVED to DB - ID: " + foto.getIdFoto());
 
         // Construir response
         FileUploadResponseDTO response = new FileUploadResponseDTO();
@@ -192,13 +206,16 @@ public class FotoService extends BaseService<Foto> {
      * Actualiza metadata de una foto. Solo el dueño o admin pueden.
      */
     public FotoDTO actualizarFoto(Long id, FotoUpdateDTO dto, String username) {
+        LOG.info("=== ACTUALIZAR FOTO === ID: " + id + ", User: " + username);
         Foto foto = em.find(Foto.class, id.intValue());
         if (foto == null) {
+            LOG.warning("Photo NOT FOUND: " + id);
             throw new RuntimeException("Foto no encontrada");
         }
 
         // Verificar permiso
         if (!esAdmin(username) && !foto.getUsuario().getNombreUsuario().equals(username)) {
+            LOG.warning("FORBIDDEN - User: " + username + " trying to edit photo: " + id + " (owner: " + foto.getUsuario().getNombreUsuario() + ")");
             throw new SecurityException("No tienes permiso para editar esta foto");
         }
 
@@ -215,6 +232,7 @@ public class FotoService extends BaseService<Foto> {
         foto.setFechaActualizacion(java.time.LocalDateTime.now());
 
         em.merge(foto);
+        LOG.info("Photo UPDATED: " + id);
         return FotoMapper.toDTO(foto);
     }
 
@@ -222,20 +240,25 @@ public class FotoService extends BaseService<Foto> {
      * Elimina una foto. Solo el dueño o admin pueden.
      */
     public void eliminarFoto(Long id, String username) {
+        LOG.info("=== ELIMINAR FOTO === ID: " + id + ", User: " + username);
         Foto foto = em.find(Foto.class, id.intValue());
         if (foto == null) {
+            LOG.warning("Photo NOT FOUND: " + id);
             throw new RuntimeException("Foto no encontrada");
         }
 
         if (!esAdmin(username) && !foto.getUsuario().getNombreUsuario().equals(username)) {
+            LOG.warning("FORBIDDEN - User: " + username + " trying to delete photo: " + id);
             throw new SecurityException("No tienes permiso para eliminar esta foto");
         }
 
         // Eliminar archivos del disco
         String userUploadDir = UPLOAD_DIR + File.separator + foto.getUsuario().getNombreUsuario();
         eliminarArchivosFoto(userUploadDir, foto);
+        LOG.info("Photo files deleted from disk");
 
         em.remove(foto);
+        LOG.info("Photo DELETED from DB: " + id);
     }
 
     // ============================================

@@ -34,22 +34,22 @@ public class Categoria {
     private String slug;
 
 
-    @Column(name = "icono", length = 50)
+    @Column(name = "icono", length = 50, columnDefinition = "VARCHAR(50) CHARACTER SET utf8mb4")
     private String icono;
 
     @Column(name = "color", length = 20)
     private String color; // Color hex para mostrar en UI: #27ae60
 
-    @Column(name = "orden", nullable = false, unique = true)
-    private Integer orden = 0 ;
-    @Column(name = "activo", nullable = false,  unique = true)
+    @Column(name = "orden", nullable = false)
+    private Integer orden = 0;
+
+    @Column(name = "activo", nullable = false)
     private Boolean activo = true;
 
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 
-
-    @Column(name = "fecha_actualizacion", nullable = false, updatable = false)
+    @Column(name = "fecha_actualizacion")
     private LocalDateTime fechaActualizacion;
 
     @OneToMany(mappedBy = "categoria",cascade = CascadeType.ALL,fetch = FetchType.LAZY, orphanRemoval = false)
