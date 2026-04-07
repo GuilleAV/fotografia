@@ -1,16 +1,71 @@
-<!-- Hero Section -->
-<section class="hero">
-  <div class="hero-content">
-    <h1>Descubrí el mundo a través de nuestros lentes</h1>
-    <p>Fotógrafos profesionales capturando momentos únicos</p>
-    <a routerLink="/galeria" class="btn-primary">Explorar Galería</a>
-  </div>
+<!-- Hero Carousel -->
+<section class="hero-carousel">
+  @if (carouselSlides().length > 0) {
+    <div class="carousel-container">
+      @for (slide of carouselSlides(); track trackByFoto($index, slide); let i = $index) {
+        <div
+          class="carousel-slide"
+          [class.active]="i === currentSlide()"
+        >
+          <img
+            [src]="slide | fotoImagenUrl:'web'"
+            [alt]="slide.titulo"
+            loading="lazy"
+          />
+          <div class="carousel-overlay"></div>
+        </div>
+      }
+
+      <!-- Navigation arrows -->
+      <button class="carousel-arrow carousel-arrow--prev" (click)="prevSlide()" aria-label="Anterior">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <button class="carousel-arrow carousel-arrow--next" (click)="nextSlide()" aria-label="Siguiente">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+
+      <!-- Dots -->
+      <div class="carousel-dots">
+        @for (slide of carouselSlides(); track trackByFoto($index, slide); let i = $index) {
+          <button
+            class="carousel-dot"
+            [class.active]="i === currentSlide()"
+            (click)="goToSlide(i)"
+            aria-label="Ir a slide {{ i + 1 }}"
+          ></button>
+        }
+      </div>
+
+      <!-- Hero content overlay -->
+      <div class="hero-content">
+        <h1>Descubrí el mundo a través de nuestros lentes</h1>
+        <p>Fotógrafos profesionales capturando momentos únicos</p>
+        <a routerLink="/galeria" class="btn-primary">Explorar Galería</a>
+      </div>
+    </div>
+  } @else {
+    <!-- Fallback sin fotos -->
+    <div class="hero-static">
+      <div class="hero-content">
+        <h1>Descubrí el mundo a través de nuestros lentes</h1>
+        <p>Fotógrafos profesionales capturando momentos únicos</p>
+        <a routerLink="/galeria" class="btn-primary">Explorar Galería</a>
+      </div>
+    </div>
+  }
 </section>
 
 <!-- Featured Photos -->
 <section class="section">
   <div class="container">
-    <h2 class="section-title">Fotos Destacadas</h2>
+    <div class="section-header">
+      <h2 class="section-title">Fotos Destacadas</h2>
+      <a routerLink="/galeria" class="section-link">Ver todas →</a>
+    </div>
 
     @if (loading()) {
       <div class="photo-grid">
@@ -45,9 +100,13 @@
     <div class="categories-grid">
       @for (cat of categorias(); track cat.idCategoria) {
         <a [routerLink]="['/galeria']" [queryParams]="{ categoria: cat.idCategoria }" class="category-card">
-          <span class="category-icon">{{ cat.icono || '📷' }}</span>
+          <div class="category-icon-wrapper" [style.background]="cat.color || '#667eea'">
+            <i class="{{ cat.icono || 'fa-solid fa-camera' }}"></i>
+          </div>
           <h3>{{ cat.nombre }}</h3>
-          <p>{{ cat.descripcion }}</p>
+          @if (cat.descripcion) {
+            <p>{{ cat.descripcion }}</p>
+          }
         </a>
       }
     </div>

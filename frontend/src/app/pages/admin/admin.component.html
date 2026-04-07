@@ -2,6 +2,11 @@
   <div class="container">
     <h1>Panel de Administración</h1>
 
+    <!-- Mensaje de feedback -->
+    @if (message()) {
+      <div class="alert-success">{{ message() }}</div>
+    }
+
     <!-- Tabs -->
     <div class="tabs">
       <button
@@ -24,7 +29,7 @@
         @for (foto of pendientes(); track foto.idFoto) {
           <div class="moderation-card">
             <div class="moderation-preview">
-              <img [src]="foto.rutaWeb || foto.urlCompleta || 'assets/placeholder.jpg'" [alt]="foto.titulo" />
+              <img [src]="foto | fotoImagenUrl:'web'" [alt]="foto.titulo" />
             </div>
             <div class="moderation-info">
               <h3>{{ foto.titulo }}</h3>
@@ -71,7 +76,7 @@
             @for (foto of todas(); track foto.idFoto) {
               <tr>
                 <td>
-                  <img class="table-thumb" [src]="foto.rutaThumbnail || 'assets/placeholder.jpg'" [alt]="foto.titulo" />
+                  <img class="table-thumb" [src]="foto | fotoImagenUrl:'thumb'" [alt]="foto.titulo" />
                 </td>
                 <td>{{ foto.titulo }}</td>
                 <td>{{ foto.usuarioNombre || '—' }}</td>

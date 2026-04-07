@@ -1,7 +1,7 @@
 <div class="photo-card" [routerLink]="['/foto', foto().idFoto]">
   <div class="photo-wrapper">
     <img
-      [src]="foto().rutaWeb || foto().urlCompleta || 'assets/placeholder.jpg'"
+      [src]="foto() | fotoImagenUrl:'web'"
       [alt]="foto().titulo"
       loading="lazy"
     />

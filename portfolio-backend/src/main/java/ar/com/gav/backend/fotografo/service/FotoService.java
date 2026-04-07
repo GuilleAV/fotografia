@@ -34,6 +34,14 @@ public class FotoService extends BaseService<Foto> {
     // Directorio base para almacenamiento de fotos (configurable)
     private static final String UPLOAD_DIR = System.getProperty("user.home") + File.separator + "portfolio-uploads";
 
+    /**
+     * Retorna el directorio base de uploads.
+     * Necesario para servir imágenes desde FotoResource.
+     */
+    public String getUploadDir() {
+        return UPLOAD_DIR;
+    }
+
     public FotoService() {
         super(Foto.class);
     }
@@ -54,11 +62,11 @@ public class FotoService extends BaseService<Foto> {
         return FotoMapper.toDTO(actualizado);
     }
 
-    public void eliminar(Long id) {
+    public void eliminar(Integer id) {
         super.eliminar(id);
     }
 
-    public FotoDTO buscarPorId(Long id) {
+    public FotoDTO buscarPorId(Integer id) {
         Foto entidad = super.buscarPorId(id);
         return FotoMapper.toDTO(entidad);
     }
@@ -160,38 +168,48 @@ public class FotoService extends BaseService<Foto> {
 
         // Procesar imagen (genera original, thumbnail, web)
         LOG.info("Processing image...");
-        String[] rutas = imageProcessor.processImage(archivoStream, nombreArchivo, userUploadDir);
-        LOG.info("Image processed - Original: " + rutas[0] + ", Thumbnail: " + rutas[1] + ", Web: " + rutas[2]);
+        ImageProcessor.ImageResult result = imageProcessor.processImage(archivoStream, nombreArchivo, userUploadDir);
+        LOG.info("Image processed - Original: " + result.originalName
+                + ", Thumbnail: " + result.thumbnailName
+                + ", Web: " + result.webName
+                + ", Dimensions: " + result.originalWidth + "x" + result.originalHeight);
 
         // Crear entidad Foto
         Foto foto = new Foto();
         foto.setTitulo(titulo);
         foto.setDescripcion(descripcion);
         foto.setNombreArchivo(nombreArchivo);
-        foto.setRutaArchivo(rutas[0]);
-        foto.setRutaThumbnail(rutas[1]);
-        foto.setRutaWeb(rutas[2]);
+        foto.setRutaArchivo(result.originalName);
+        foto.setRutaThumbnail(result.thumbnailName);
+        foto.setRutaWeb(result.webName);
+        foto.setAnchoPx(result.originalWidth);
+        foto.setAltoPx(result.originalHeight);
+        foto.setTamanioKb((int) (result.originalSizeBytes / 1024));
         foto.setCategoria(categoria);
         foto.setUsuario(usuario);
         foto.setEstado("PENDIENTE");
         foto.setActivo(true);
 
-        // Obtener tamaño del archivo original
-        File originalFile = new File(userUploadDir + File.separator + rutas[0]);
-        foto.setTamanioKb((int) (originalFile.length() / 1024));
-        LOG.info("File size: " + foto.getTamanioKb() + " KB");
+        LOG.info("File size: " + foto.getTamanioKb() + " KB, Dimensions: " + result.originalWidth + "x" + result.originalHeight);
 
         super.crear(foto);
+        // Con IDENTITY, el ID no se asigna hasta flush
+        em.flush();
         LOG.info("Photo SAVED to DB - ID: " + foto.getIdFoto());
+
+        // Generar URL completa con el ID ya disponible
+        String baseUrl = "http://localhost:8080/portfolio-backend/api";
+        foto.setUrlCompleta(baseUrl + "/fotos/" + foto.getIdFoto());
+        em.merge(foto);
 
         // Construir response
         FileUploadResponseDTO response = new FileUploadResponseDTO();
         response.setIdFoto(foto.getIdFoto());
         response.setTitulo(titulo);
         response.setNombreArchivo(nombreArchivo);
-        response.setRutaOriginal(rutas[0]);
-        response.setRutaThumbnail(rutas[1]);
-        response.setRutaWeb(rutas[2]);
+        response.setRutaOriginal(result.originalName);
+        response.setRutaThumbnail(result.thumbnailName);
+        response.setRutaWeb(result.webName);
         response.setEstado("PENDIENTE");
         response.setMensaje("Foto subida correctamente. Pendiente de aprobación.");
 
@@ -205,9 +223,9 @@ public class FotoService extends BaseService<Foto> {
     /**
      * Actualiza metadata de una foto. Solo el dueño o admin pueden.
      */
-    public FotoDTO actualizarFoto(Long id, FotoUpdateDTO dto, String username) {
+    public FotoDTO actualizarFoto(Integer id, FotoUpdateDTO dto, String username) {
         LOG.info("=== ACTUALIZAR FOTO === ID: " + id + ", User: " + username);
-        Foto foto = em.find(Foto.class, id.intValue());
+        Foto foto = em.find(Foto.class, id);
         if (foto == null) {
             LOG.warning("Photo NOT FOUND: " + id);
             throw new RuntimeException("Foto no encontrada");
@@ -239,9 +257,9 @@ public class FotoService extends BaseService<Foto> {
     /**
      * Elimina una foto. Solo el dueño o admin pueden.
      */
-    public void eliminarFoto(Long id, String username) {
+    public void eliminarFoto(Integer id, String username) {
         LOG.info("=== ELIMINAR FOTO === ID: " + id + ", User: " + username);
-        Foto foto = em.find(Foto.class, id.intValue());
+        Foto foto = em.find(Foto.class, id);
         if (foto == null) {
             LOG.warning("Photo NOT FOUND: " + id);
             throw new RuntimeException("Foto no encontrada");
@@ -268,8 +286,8 @@ public class FotoService extends BaseService<Foto> {
     /**
      * Cambia el estado de una foto (solo admin).
      */
-    public FotoDTO cambiarEstado(Long id, String nuevoEstado) {
-        Foto foto = em.find(Foto.class, id.intValue());
+    public FotoDTO cambiarEstado(Integer id, String nuevoEstado) {
+        Foto foto = em.find(Foto.class, id);
         if (foto == null) {
             throw new RuntimeException("Foto no encontrada");
         }
@@ -302,8 +320,8 @@ public class FotoService extends BaseService<Foto> {
     /**
      * Obtiene el archivo original para descarga.
      */
-    public File obtenerArchivoOriginal(Long id, String username) {
-        Foto foto = em.find(Foto.class, id.intValue());
+    public File obtenerArchivoOriginal(Integer id, String username) {
+        Foto foto = em.find(Foto.class, id);
         if (foto == null) return null;
 
         // Solo el dueño o admin pueden descargar
@@ -322,8 +340,8 @@ public class FotoService extends BaseService<Foto> {
     /**
      * Incrementa el contador de visitas de una foto.
      */
-    public void incrementarVisitas(Long id) {
-        Foto foto = em.find(Foto.class, id.intValue());
+    public void incrementarVisitas(Integer id) {
+        Foto foto = em.find(Foto.class, id);
         if (foto != null) {
             foto.setVisitas(foto.getVisitas() + 1);
             em.merge(foto);

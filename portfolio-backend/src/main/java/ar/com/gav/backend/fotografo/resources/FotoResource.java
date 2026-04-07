@@ -9,10 +9,9 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.Part;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.*;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.*;
 import java.util.logging.Level;
@@ -52,7 +51,7 @@ public class FotoResource {
 
     @GET
     @Path("/{id}")
-    public Response obtener(@PathParam("id") Long id) {
+    public Response obtener(@PathParam("id") Integer id) {
         LOG.info("=== OBTENER FOTO === ID: " + id);
         try {
             FotoDTO dto = fotoService.buscarPorId(id);
@@ -216,7 +215,7 @@ public class FotoResource {
 
     private String getPartValue(Part part) {
         try {
-            Scanner scanner = new Scanner(part.getInputStream());
+            Scanner scanner = new Scanner(part.getInputStream(), "UTF-8");
             return scanner.useDelimiter("\\A").hasNext() ? scanner.next() : null;
         } catch (Exception e) {
             return null;
@@ -227,7 +226,7 @@ public class FotoResource {
     @Path("/{id}")
     @Secured
     public Response actualizarFoto(
-            @PathParam("id") Long id,
+            @PathParam("id") Integer id,
             FotoUpdateDTO dto,
             @HeaderParam("Authorization") String authHeader) {
 
@@ -252,7 +251,7 @@ public class FotoResource {
     @Path("/{id}")
     @Secured
     public Response eliminarFoto(
-            @PathParam("id") Long id,
+            @PathParam("id") Integer id,
             @HeaderParam("Authorization") String authHeader) {
 
         try {
@@ -319,7 +318,7 @@ public class FotoResource {
     @Secured
     @Consumes(MediaType.APPLICATION_JSON)
     public Response cambiarEstado(
-            @PathParam("id") Long id,
+            @PathParam("id") Integer id,
             FotoEstadoDTO dto,
             @HeaderParam("Authorization") String authHeader) {
 
@@ -351,7 +350,7 @@ public class FotoResource {
     @Path("/{id}/download")
     @Secured
     public Response descargarOriginal(
-            @PathParam("id") Long id,
+            @PathParam("id") Integer id,
             @HeaderParam("Authorization") String authHeader) {
 
         try {
@@ -379,6 +378,151 @@ public class FotoResource {
             LOG.log(Level.SEVERE, "Error downloading photo: " + id, e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(errorResponse("Error al descargar: " + e.getMessage())).build();
+        }
+    }
+
+    // ============================================
+    // ENDPOINTS DE IMAGEN (servir archivos)
+    // ============================================
+
+    /**
+     * Sirve una versión de la imagen (thumbnail, web u original).
+     * Con headers de cache optimizados para producción.
+     *
+     * @param id ID de la foto
+     * @param tipo Tipo de imagen: "thumb", "web", "original"
+     */
+    @GET
+    @Path("/{id}/imagen/{tipo}")
+    public Response obtenerImagen(
+            @PathParam("id") Integer id,
+            @PathParam("tipo") String tipo,
+            @HeaderParam("Authorization") String authHeader,
+            @QueryParam("token") String queryToken,
+            @Context Request request) {
+
+        try {
+            LOG.info("=== OBTENER IMAGEN === ID: " + id + ", Tipo: " + tipo);
+
+            FotoDTO foto = fotoService.buscarPorId(id);
+            if (foto == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity(errorResponse("Foto no encontrada")).build();
+            }
+
+            // Si la foto NO está aprobada, verificar permisos
+            if (!"APROBADA".equals(foto.getEstado())) {
+                String username = null;
+
+                // Intentar auth por header primero
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                    try {
+                        username = obtenerUsername(authHeader);
+                    } catch (SecurityException e) {
+                        // Token inválido, intentar query param
+                    }
+                }
+
+                // Fallback: token por query param (para <img> tags)
+                if (username == null && queryToken != null && !queryToken.isEmpty()) {
+                    try {
+                        username = jwtUtil.obtenerUsername(queryToken);
+                    } catch (Exception e) {
+                        // Token inválido
+                    }
+                }
+
+                // Solo el dueño o admin pueden ver fotos no aprobadas
+                if (username == null || (!foto.getUsuarioUsername().equals(username) && !fotoService.esAdmin(username))) {
+                    return Response.status(Response.Status.FORBIDDEN)
+                            .entity(errorResponse("Foto no disponible")).build();
+                }
+            }
+
+            // Determinar qué archivo servir
+            String nombreArchivo;
+            String contentType;
+            long maxAge;
+
+            switch (tipo.toLowerCase()) {
+                case "thumb":
+                    nombreArchivo = foto.getRutaThumbnail();
+                    maxAge = 604800; // 7 días para thumbnails
+                    break;
+                case "web":
+                    nombreArchivo = foto.getRutaWeb();
+                    maxAge = 2592000; // 30 días para versión web
+                    break;
+                case "original":
+                    nombreArchivo = foto.getRutaArchivo();
+                    maxAge = 31536000; // 1 año para original (inmutable)
+                    break;
+                default:
+                    return Response.status(Response.Status.BAD_REQUEST)
+                            .entity(errorResponse("Tipo de imagen inválido. Use: thumb, web, original")).build();
+            }
+
+            if (nombreArchivo == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity(errorResponse("Imagen no disponible")).build();
+            }
+
+            // Determinar Content-Type dinámicamente según la extensión real del archivo
+            contentType = determinarContentType(nombreArchivo);
+
+            // Construir ruta del archivo
+            String username = foto.getUsuarioUsername();
+            String uploadDir = fotoService.getUploadDir() + File.separator + username;
+            File archivo = new File(uploadDir + File.separator + nombreArchivo);
+
+            if (!archivo.exists()) {
+                LOG.warning("Image file NOT FOUND: " + archivo.getAbsolutePath());
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity(errorResponse("Archivo de imagen no encontrado")).build();
+            }
+
+            // ETag para cache condicional
+            String etag = "\"" + archivo.lastModified() + "-" + archivo.length() + "\"";
+            Response.ResponseBuilder builder = request.evaluatePreconditions(new EntityTag(etag));
+
+            if (builder != null) {
+                // 304 Not Modified
+                return builder.build();
+            }
+
+            // Servir archivo con headers de cache
+            return Response.ok(new FileInputStream(archivo), contentType)
+                    .header("Content-Length", archivo.length())
+                    .header("ETag", etag)
+                    .header("Cache-Control", "public, max-age=" + maxAge + ", immutable")
+                    .header("Last-Modified", new Date(archivo.lastModified()))
+                    .build();
+
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Error serving image: " + id + "/" + tipo, e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(errorResponse("Error al obtener la imagen")).build();
+        }
+    }
+
+    /**
+     * Determina el Content-Type según la extensión del archivo.
+     */
+    private String determinarContentType(String nombreArchivo) {
+        if (nombreArchivo == null) return "application/octet-stream";
+        String ext = nombreArchivo.substring(nombreArchivo.lastIndexOf(".") + 1).toLowerCase();
+        switch (ext) {
+            case "jpg":
+            case "jpeg":
+                return "image/jpeg";
+            case "png":
+                return "image/png";
+            case "webp":
+                return "image/webp";
+            case "gif":
+                return "image/gif";
+            default:
+                return "application/octet-stream";
         }
     }
 

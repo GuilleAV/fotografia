@@ -7,6 +7,8 @@ import ar.com.gav.backend.fotografo.entity.Foto;
 
 public class FotoMapper {
 
+    private static final String BASE_URL = "http://localhost:8080/portfolio-backend/api";
+
     public static FotoDTO toDTO(Foto entity) {
         if (entity == null) return null;
         FotoDTO dto = new FotoDTO();
@@ -17,7 +19,6 @@ public class FotoMapper {
         dto.setRutaArchivo(entity.getRutaArchivo());
         dto.setRutaThumbnail(entity.getRutaThumbnail());
         dto.setRutaWeb(entity.getRutaWeb());
-        dto.setUrlCompleta(entity.getUrlCompleta());
         dto.setTamanioKb(entity.getTamanioKb());
         dto.setAnchoPx(entity.getAnchoPx());
         dto.setAltoPx(entity.getAltoPx());
@@ -27,6 +28,16 @@ public class FotoMapper {
         dto.setVisitas(entity.getVisitas());
         dto.setFechaSubida(entity.getFechaSubida());
         dto.setFechaActualizacion(entity.getFechaActualizacion());
+
+        // Campos computados
+        if (entity.getAnchoPx() != null && entity.getAltoPx() != null) {
+            dto.setDimensiones(entity.getAnchoPx() + " x " + entity.getAltoPx());
+        }
+
+        // Generar URL completa dinámicamente — nunca depende de la BD
+        if (entity.getIdFoto() != null) {
+            dto.setUrlCompleta(BASE_URL + "/fotos/" + entity.getIdFoto());
+        }
 
         if (entity.getCategoria() != null) {
             dto.setIdCategoria(entity.getCategoria().getIdCategoria());

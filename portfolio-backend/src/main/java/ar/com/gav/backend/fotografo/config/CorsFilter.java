@@ -37,7 +37,7 @@ public class CorsFilter implements ContainerResponseFilter {
         // Métodos HTTP permitidos
         responseContext.getHeaders().add(
                 "Access-Control-Allow-Methods",
-                "GET, POST, PUT, DELETE, OPTIONS, HEAD"
+                "GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD"
         );
 
         // Headers permitidos en las peticiones
@@ -59,9 +59,10 @@ public class CorsFilter implements ContainerResponseFilter {
         );
 
         // Headers que el cliente puede leer en la respuesta
+        // Incluir ETag y Cache-Control para optimización de imágenes
         responseContext.getHeaders().add(
                 "Access-Control-Expose-Headers",
-                "Authorization, Content-Type"
+                "Authorization, Content-Type, ETag, Cache-Control, Last-Modified, Content-Length"
         );
     }
 }

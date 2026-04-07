@@ -96,6 +96,28 @@
         </dependency>
 
         <!-- ==================== -->
+        <!-- TWELVEMONKEYS IMAGEIO (WebP support) -->
+        <!-- Descomentar cuando haya conexión a internet para mvn install -->
+        <!--
+        <dependency>
+            <groupId>com.twelvemonkeys.imageio</groupId>
+            <artifactId>imageio-webp</artifactId>
+            <version>3.12.0</version>
+        </dependency>
+        -->
+
+        <!-- ==================== -->
+        <!-- TWELVEMONKEYS IMAGEIO (WebP support) -->
+        <!-- Descomentar cuando haya conexión a internet para mvn install -->
+        <!--
+        <dependency>
+            <groupId>com.twelvemonkeys.imageio</groupId>
+            <artifactId>imageio-webp</artifactId>
+            <version>3.12.0</version>
+        </dependency>
+        -->
+
+        <!-- ==================== -->
         <!-- LOMBOK (Opcional)    -->
         <!-- ==================== -->
 

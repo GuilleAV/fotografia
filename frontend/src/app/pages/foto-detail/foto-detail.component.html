@@ -31,7 +31,7 @@
       <!-- Main Image -->
       <div class="image-container" (click)="openLightbox()">
         <img
-          [src]="foto()!.rutaWeb || foto()!.urlCompleta || 'assets/placeholder.jpg'"
+          [src]="foto() | fotoImagenUrl:'web'"
           [alt]="foto()!.titulo"
           class="main-image"
         />
@@ -112,7 +112,7 @@
     <div class="lightbox" (click)="closeLightbox()">
       <button class="lightbox-close" (click)="closeLightbox()">✕</button>
       <img
-        [src]="foto()!.rutaWeb || foto()!.urlCompleta || 'assets/placeholder.jpg'"
+        [src]="foto() | fotoImagenUrl:'web'"
         [alt]="foto()!.titulo"
         (click)="$event.stopPropagation()"
       />

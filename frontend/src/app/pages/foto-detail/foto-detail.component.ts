@@ -5,11 +5,12 @@ import { FotoService } from '../../core/services/foto.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Foto } from '../../core/models';
 import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.component';
+import { FotoImagenUrlPipe } from '../../core/pipes/foto-imagen-url.pipe';
 
 @Component({
   selector: 'app-foto-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, SkeletonComponent],
+  imports: [CommonModule, RouterLink, SkeletonComponent, FotoImagenUrlPipe],
   templateUrl: './foto-detail.component.html',
   styleUrls: ['./foto-detail.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
