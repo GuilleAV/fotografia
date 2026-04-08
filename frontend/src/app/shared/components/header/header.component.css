@@ -116,6 +116,8 @@
   inset: 0;
   background: rgba(0,0,0,0.5);
   z-index: 1001;
+  /* No cubre el área del menú (260px de la derecha) */
+  clip-path: inset(0 260px 0 0);
 }
 
 /* === TABLET (min-width: 600px) === */
