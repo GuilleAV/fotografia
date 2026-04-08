@@ -16,12 +16,12 @@
         </init-param>
         <load-on-startup>1</load-on-startup>
         <multipart-config>
-            <!-- Tamaño máximo por archivo: 10MB -->
-            <max-file-size>10485760</max-file-size>
-            <!-- Tamaño máximo del request completo: 12MB -->
-            <max-request-size>12582912</max-request-size>
-            <!-- Umbral para escribir en disco: 0 = siempre en memoria -->
-            <file-size-threshold>0</file-size-threshold>
+            <!-- Tamaño máximo por archivo: 35MB (para fotos de hasta 30MB) -->
+            <max-file-size>36700160</max-file-size>
+            <!-- Tamaño máximo del request completo: 40MB -->
+            <max-request-size>41943040</max-request-size>
+            <!-- Escribir a disco cuando exceda 1MB -->
+            <file-size-threshold>1048576</file-size-threshold>
         </multipart-config>
     </servlet>
 

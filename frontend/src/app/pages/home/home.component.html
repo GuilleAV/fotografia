@@ -10,7 +10,7 @@
           <img
             [src]="slide | fotoImagenUrl:'web'"
             [alt]="slide.titulo"
-            loading="lazy"
+            loading="eager"
           />
           <div class="carousel-overlay"></div>
         </div>
@@ -67,28 +67,14 @@
       <a routerLink="/galeria" class="section-link">Ver todas →</a>
     </div>
 
-    @if (loading()) {
+    @if (fotosDestacadas().length > 0) {
       <div class="photo-grid">
-        @for (_ of [1,2,3,4,5,6]; track _) {
-          <div class="card-skeleton">
-            <app-skeleton height="210px" />
-            <div style="padding: 1rem;">
-              <app-skeleton width="70%" height="1rem" />
-              <app-skeleton width="40%" height="0.8rem" style="margin-top: 0.5rem;" />
-            </div>
-          </div>
-        }
-      </div>
-    } @else if (error()) {
-      <div class="error">{{ error() }}</div>
-    } @else {
-      <div class="photo-grid">
-        @for (foto of fotos(); track foto.idFoto) {
+        @for (foto of fotosDestacadas(); track foto.idFoto) {
           <app-photo-card [foto]="foto" />
-        } @empty {
-          <p class="empty">No hay fotos disponibles aún.</p>
         }
       </div>
+    } @else {
+      <p class="empty">No hay fotos destacadas aún.</p>
     }
   </div>
 </section>

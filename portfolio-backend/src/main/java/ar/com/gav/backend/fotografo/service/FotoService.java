@@ -106,6 +106,32 @@ public class FotoService extends BaseService<Foto> {
     }
 
     /**
+     * Lista fotos para el carousel (fotos con orden asignado).
+     * Solo aprobadas, ordenadas por el campo orden ASC.
+     */
+    public List<FotoDTO> listarParaCarousel() {
+        return em.createQuery(
+                "SELECT f FROM Foto f WHERE f.estado = 'APROBADA' AND f.activo = TRUE AND f.orden IS NOT NULL ORDER BY f.orden ASC",
+                Foto.class)
+                .setMaxResults(5)
+                .getResultList().stream()
+                .map(FotoMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Lista fotos destacadas (para la sección de fotos destacadas).
+     * Solo aprobadas, ordenadas por fecha DESC.
+     */
+    public List<FotoDTO> listarDestacadas() {
+        return em.createQuery(
+                "SELECT f FROM Foto f WHERE f.estado = 'APROBADA' AND f.activo = TRUE AND f.destacada = TRUE ORDER BY f.fechaSubida DESC",
+                Foto.class).getResultList().stream()
+                .map(FotoMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Lista fotos por username del usuario.
      */
     public List<FotoDTO> listarPorUsuario(String username) {
@@ -245,6 +271,15 @@ public class FotoService extends BaseService<Foto> {
             if (cat != null) foto.setCategoria(cat);
         }
         if (dto.getDestacada() != null) foto.setDestacada(dto.getDestacada());
+        // Orden: permitir setear (1-5) o remove (null)
+        if (dto.getOrden() != null) {
+            if (dto.getOrden() >= 1 && dto.getOrden() <= 5) {
+                foto.setOrden(dto.getOrden());
+            }
+        } else {
+            // Si explicitly se envía null, remover del carousel
+            foto.setOrden(null);
+        }
         if (dto.getActivo() != null) foto.setActivo(dto.getActivo());
 
         foto.setFechaActualizacion(java.time.LocalDateTime.now());

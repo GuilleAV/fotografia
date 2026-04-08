@@ -65,11 +65,10 @@
             <tr>
               <th>Foto</th>
               <th>Título</th>
-              <th>Fotógrafo</th>
-              <th>Categoría</th>
               <th>Estado</th>
-              <th>Visitas</th>
-              <th>Fecha</th>
+              <th>Destacada</th>
+              <th>Carousel</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -78,16 +77,49 @@
                 <td>
                   <img class="table-thumb" [src]="foto | fotoImagenUrl:'thumb'" [alt]="foto.titulo" />
                 </td>
-                <td>{{ foto.titulo }}</td>
-                <td>{{ foto.usuarioNombre || '—' }}</td>
-                <td>{{ foto.categoriaNombre || '—' }}</td>
+                <td>
+                  <div class="foto-titulo">{{ foto.titulo }}</div>
+                  <div class="foto-meta">{{ foto.categoriaNombre }}</div>
+                </td>
                 <td>
                   <span class="status-badge" [class]="'status-' + foto.estado.toLowerCase()">
                     {{ foto.estado }}
                   </span>
                 </td>
-                <td>{{ foto.visitas }}</td>
-                <td>{{ foto.fechaSubida | date:'shortDate' }}</td>
+                <td>
+                  <button 
+                    class="btn-toggle" 
+                    [class.active]="foto.destacada"
+                    [disabled]="foto.estado !== 'APROBADA'"
+                    (click)="toggleDestacada(foto)"
+                    title="Marcar como destacada"
+                  >
+                    {{ foto.destacada ? '⭐' : '☆' }}
+                  </button>
+                </td>
+                <td>
+                  <select 
+                    class="orden-select"
+                    [value]="foto.orden || ''"
+                    [disabled]="foto.estado !== 'APROBADA'"
+                    (change)="setOrden(foto, ($any($event.target).value ? +$any($event.target).value : null))"
+                  >
+                    <option value="">—</option>
+                    @for (n of [1,2,3,4,5]; track n) {
+                      <option [value]="n">{{ n }}</option>
+                    }
+                  </select>
+                </td>
+                <td>
+                  @if (foto.estado === 'PENDIENTE') {
+                    <button class="btn-sm btn-approve" (click)="aprobar(foto)">✓</button>
+                    <button class="btn-sm btn-reject" (click)="rechazar(foto)">✗</button>
+                  } @else if (foto.estado === 'APROBADA') {
+                    <button class="btn-sm btn-reject" (click)="rechazar(foto)">Quitar</button>
+                  } @else {
+                    <button class="btn-sm btn-approve" (click)="aprobar(foto)">Aprobar</button>
+                  }
+                </td>
               </tr>
             }
           </tbody>

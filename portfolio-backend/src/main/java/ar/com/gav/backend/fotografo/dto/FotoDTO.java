@@ -24,6 +24,7 @@ public class FotoDTO implements Serializable {
     private String dimensiones;
     private String relacionAspecto;
     private Boolean destacada;
+    private Integer orden; // Para carousel
     private Boolean activo;
     private String estado; // PENDIENTE, APROBADA, RECHAZADA
     private Integer visitas;
@@ -148,6 +149,14 @@ public class FotoDTO implements Serializable {
 
     public void setDestacada(Boolean destacada) {
         this.destacada = destacada;
+    }
+
+    public Integer getOrden() {
+        return orden;
+    }
+
+    public void setOrden(Integer orden) {
+        this.orden = orden;
     }
 
     public Boolean getActivo() {

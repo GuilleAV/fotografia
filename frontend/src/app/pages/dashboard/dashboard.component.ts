@@ -20,6 +20,10 @@ export class DashboardComponent implements OnInit {
   private categoriaService = inject(CategoriaService);
   authService = inject(AuthService);
 
+  // Límite máximo de 30MB para archivos
+  private readonly MAX_FILE_SIZE = 30 * 1024 * 1024; // 30MB en bytes
+  private readonly ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+
   fotos = signal<Foto[]>([]);
   categorias = signal<Categoria[]>([]);
   loading = signal(true);
@@ -49,7 +53,26 @@ export class DashboardComponent implements OnInit {
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.selectedFile = input.files[0];
+      const file = input.files[0];
+      
+      // Validación de tipo
+      if (!this.ALLOWED_TYPES.includes(file.type)) {
+        this.uploadMessage.set('Tipo de archivo no permitido. Solo se aceptan: JPEG, PNG, WebP, GIF');
+        this.uploadSuccess.set(false);
+        this.selectedFile = null;
+        return;
+      }
+
+      // Validación de tamaño (30MB)
+      if (file.size > this.MAX_FILE_SIZE) {
+        this.uploadMessage.set('El archivo excede el límite máximo de 30MB');
+        this.uploadSuccess.set(false);
+        this.selectedFile = null;
+        return;
+      }
+
+      this.selectedFile = file;
+      this.uploadMessage.set(null);
     }
   }
 

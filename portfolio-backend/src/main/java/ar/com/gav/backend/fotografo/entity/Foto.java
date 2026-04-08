@@ -53,6 +53,9 @@ public class Foto implements Serializable {
     @Column(name = "destacada", nullable = false)
     private Boolean destacada = false;
 
+    @Column(name = "orden")
+    private Integer orden; // Para поряд del carousel (1, 2, 3...)
+
     @Column(name = "activo", nullable = false)
     private Boolean activo = true;
 
@@ -193,6 +196,14 @@ public class Foto implements Serializable {
 
     public void setDestacada(Boolean destacada) {
         this.destacada = destacada;
+    }
+
+    public Integer getOrden() {
+        return orden;
+    }
+
+    public void setOrden(Integer orden) {
+        this.orden = orden;
     }
 
     public Boolean getActivo() {

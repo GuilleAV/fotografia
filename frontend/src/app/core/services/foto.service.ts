@@ -12,7 +12,15 @@ export class FotoService {
   // ============ PÚBLICOS ============
 
   listarPublicas(): Observable<Foto[]> {
-    return this.http.get<Foto[]>(this.apiUrl);
+    return this.http.get<Foto[]>(`${this.apiUrl}`);
+  }
+
+  listarCarousel(): Observable<Foto[]> {
+    return this.http.get<Foto[]>(`${this.apiUrl}/carousel`);
+  }
+
+  listarDestacadas(): Observable<Foto[]> {
+    return this.http.get<Foto[]>(`${this.apiUrl}/destacadas`);
   }
 
   obtenerPorId(id: number): Observable<Foto> {

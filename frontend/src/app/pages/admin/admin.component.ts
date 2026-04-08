@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FotoService } from '../../core/services/foto.service';
-import { Foto } from '../../core/models';
+import { Foto, FotoUpdateRequest } from '../../core/models';
 import { FotoImagenUrlPipe } from '../../core/pipes/foto-imagen-url.pipe';
 
 @Component({
@@ -70,6 +70,47 @@ export class AdminComponent implements OnInit {
       error: (err) => {
         console.error('Error rechazando foto:', err);
         this.message.set('Error al rechazar la foto: ' + (err.error?.error || err.message));
+        setTimeout(() => this.message.set(null), 5000);
+      },
+    });
+  }
+
+  // Toggle destacada (mostrar en sección destacadas)
+  toggleDestacada(foto: Foto) {
+    const nuevaDestacada = !foto.destacada;
+    const data: FotoUpdateRequest = { destacada: nuevaDestacada };
+    
+    this.fotoService.actualizar(foto.idFoto, data).subscribe({
+      next: () => {
+        this.message.set(nuevaDestacada 
+          ? `"${foto.titulo}" ahora es destacada` 
+          : `"${foto.titulo}" ya no es destacada`);
+        this.loadTodas();
+        setTimeout(() => this.message.set(null), 3000);
+      },
+      error: (err) => {
+        this.message.set('Error al actualizar: ' + (err.error?.error || err.message));
+        setTimeout(() => this.message.set(null), 5000);
+      },
+    });
+  }
+
+  // Toggle orden del carousel (1-5, o null para quitar)
+  setOrden(foto: Foto, orden: number | null) {
+    const data: FotoUpdateRequest = { orden: orden };
+    
+    this.fotoService.actualizar(foto.idFoto, data).subscribe({
+      next: () => {
+        if (orden === null) {
+          this.message.set(`"${foto.titulo}" removida del carousel`);
+        } else {
+          this.message.set(`"${foto.titulo}" asignada al carousel (posición ${orden})`);
+        }
+        this.loadTodas();
+        setTimeout(() => this.message.set(null), 3000);
+      },
+      error: (err) => {
+        this.message.set('Error al actualizar: ' + (err.error?.error || err.message));
         setTimeout(() => this.message.set(null), 5000);
       },
     });

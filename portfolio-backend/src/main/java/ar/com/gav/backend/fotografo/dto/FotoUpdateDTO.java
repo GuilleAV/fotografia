@@ -23,6 +23,8 @@ public class FotoUpdateDTO implements Serializable {
 
     private Boolean destacada;
 
+    private Integer orden; // Para carousel (1-5)
+
     private Boolean activo;
 
     private List<Integer> etiquetasIds;
@@ -62,6 +64,14 @@ public class FotoUpdateDTO implements Serializable {
 
     public void setDestacada(Boolean destacada) {
         this.destacada = destacada;
+    }
+
+    public Integer getOrden() {
+        return orden;
+    }
+
+    public void setOrden(Integer orden) {
+        this.orden = orden;
     }
 
     public Boolean getActivo() {

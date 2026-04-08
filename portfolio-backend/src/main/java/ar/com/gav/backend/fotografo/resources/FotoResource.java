@@ -49,6 +49,41 @@ public class FotoResource {
         }
     }
 
+    /**
+     * Endpoint para obtener fotos del carousel.
+     * Usa el campo 'orden' para definir el orden de aparición.
+     */
+    @GET
+    @Path("/carousel")
+    public Response listarCarousel() {
+        LOG.info("=== LISTAR CAROUSEL ===");
+        try {
+            List<FotoDTO> fotos = fotoService.listarParaCarousel();
+            LOG.info("Found " + fotos.size() + " carousel photos");
+            return Response.ok(fotos).build();
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Error listing carousel photos", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorResponse("Error al listar fotos del carousel")).build();
+        }
+    }
+
+    /**
+     * Endpoint para obtener fotos destacadas.
+     */
+    @GET
+    @Path("/destacadas")
+    public Response listarDestacadas() {
+        LOG.info("=== LISTAR DESTACADAS ===");
+        try {
+            List<FotoDTO> fotos = fotoService.listarDestacadas();
+            LOG.info("Found " + fotos.size() + " featured photos");
+            return Response.ok(fotos).build();
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Error listing featured photos", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorResponse("Error al listar fotos destacadas")).build();
+        }
+    }
+
     @GET
     @Path("/{id}")
     public Response obtener(@PathParam("id") Integer id) {
@@ -166,10 +201,11 @@ public class FotoResource {
                         .entity(errorResponse("Formato no soportado. Use: jpg, jpeg, png, webp")).build();
             }
 
-            if (archivoPart.getSize() > 10 * 1024 * 1024) {
+            // Límite de 30MB en código (complementa web.xml)
+            if (archivoPart.getSize() > 30 * 1024 * 1024) {
                 LOG.warning("File too large: " + archivoPart.getSize() + " bytes");
                 return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(errorResponse("El archivo no puede superar 10MB")).build();
+                        .entity(errorResponse("El archivo no puede superar 30MB")).build();
             }
 
             if (titulo == null || titulo.trim().isEmpty()) {

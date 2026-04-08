@@ -39,6 +39,7 @@ export interface Foto {
   anchoPx?: number;
   altoPx?: number;
   destacada: boolean;
+  orden?: number; // Para carousel
   activo: boolean;
   estado: 'PENDIENTE' | 'APROBADA' | 'RECHAZADA';
   visitas: number;
@@ -83,6 +84,7 @@ export interface FotoUpdateRequest {
   descripcion?: string;
   idCategoria?: number;
   destacada?: boolean;
+  orden?: number | null; // 1-5 para carousel, null para quitar
   activo?: boolean;
 }
 

@@ -20,35 +20,45 @@ export class HomeComponent implements OnInit, OnDestroy {
   private fotoService = inject(FotoService);
   private categoriaService = inject(CategoriaService);
 
-  fotos = signal<Foto[]>([]);
-  categorias = signal<Categoria[]>([]);
-  loading = signal(true);
-  error = signal<string | null>(null);
-
-  // Carousel state
+  // Carousel
   carouselSlides = signal<Foto[]>([]);
   currentSlide = signal(0);
   private carouselTimer: any;
 
+  // Destacadas
+  fotosDestacadas = signal<Foto[]>([]);
+
+  // Todas las categorías
+  categorias = signal<Categoria[]>([]);
+  loading = signal(true);
+  error = signal<string | null>(null);
+
   ngOnInit() {
-    this.fotoService.listarPublicas().subscribe({
+    // Cargar carousel (usa campo orden)
+    this.fotoService.listarCarousel().subscribe({
       next: (fotos) => {
-        this.fotos.set(fotos);
-        // Tomar hasta 5 fotos para el carousel
-        const slides = fotos.slice(0, 5);
-        this.carouselSlides.set(slides);
-        if (slides.length > 0) {
+        this.carouselSlides.set(fotos);
+        if (fotos.length > 0) {
           this.startCarousel();
         }
       },
-      error: () => this.error.set('Error al cargar las fotos'),
-      complete: () => this.loading.set(false),
+      error: () => {},
     });
 
+    // Cargar destacadas (usa campo destacada)
+    this.fotoService.listarDestacadas().subscribe({
+      next: (fotos) => this.fotosDestacadas.set(fotos),
+      error: () => {},
+    });
+
+    // Cargar categorías
     this.categoriaService.listarActivas().subscribe({
       next: (cats) => this.categorias.set(cats),
       error: () => {},
     });
+
+    // Loading
+    this.loading.set(false);
   }
 
   ngOnDestroy() {
@@ -90,9 +100,5 @@ export class HomeComponent implements OnInit, OnDestroy {
     if (slides.length > 0) {
       this.goToSlide((this.currentSlide() + 1) % slides.length);
     }
-  }
-
-  trackByFoto(index: number, foto: Foto): number {
-    return foto.idFoto;
   }
 }

@@ -23,6 +23,7 @@ public class FotoMapper {
         dto.setAnchoPx(entity.getAnchoPx());
         dto.setAltoPx(entity.getAltoPx());
         dto.setDestacada(entity.getDestacada());
+        dto.setOrden(entity.getOrden());
         dto.setActivo(entity.getActivo());
         dto.setEstado(entity.getEstado());
         dto.setVisitas(entity.getVisitas());
