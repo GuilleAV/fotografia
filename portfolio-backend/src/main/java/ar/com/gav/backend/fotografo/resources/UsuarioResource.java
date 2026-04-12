@@ -1,5 +1,6 @@
 package ar.com.gav.backend.fotografo.resources;
 
+import ar.com.gav.backend.fotografo.dto.PerfilPublicoDTO;
 import ar.com.gav.backend.fotografo.dto.UsuarioCreateDTO;
 import ar.com.gav.backend.fotografo.dto.UsuarioDTO;
 import ar.com.gav.backend.fotografo.security.PasswordUtil;
@@ -25,6 +26,39 @@ public class UsuarioResource {
 
     @Inject
     private UsuarioService usuarioService;
+
+    // PÚBLICO: Perfil principal del fotógrafo
+    @GET
+    @Path("/publico/perfil")
+    public Response obtenerPerfilPublico() {
+        LOG.info("=== PERFIL PUBLICO ===");
+        try {
+            PerfilPublicoDTO perfil = usuarioService.obtenerPerfilPublicoPrincipal();
+            if (perfil == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("No hay fotógrafo público configurado").build();
+            }
+            return Response.ok(perfil).build();
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Error getting public profile", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+        }
+    }
+
+    // ADMIN: Actualizar perfil público principal
+    @PUT
+    @Path("/admin/perfil-publico")
+    @Secured
+    public Response actualizarPerfilPublico(PerfilPublicoDTO dto) {
+        LOG.info("=== ACTUALIZAR PERFIL PUBLICO ===");
+        try {
+            PerfilPublicoDTO actualizado = usuarioService.actualizarPerfilPublicoPrincipal(dto);
+            return Response.ok(actualizado).build();
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Error updating public profile", e);
+            return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+    }
 
     // ADMIN: Listar todos los usuarios
     @GET

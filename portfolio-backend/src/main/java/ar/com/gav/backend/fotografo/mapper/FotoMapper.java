@@ -15,6 +15,7 @@ public class FotoMapper {
         dto.setIdFoto(entity.getIdFoto());
         dto.setTitulo(entity.getTitulo());
         dto.setDescripcion(entity.getDescripcion());
+        dto.setComentario(entity.getComentario());
         dto.setNombreArchivo(entity.getNombreArchivo());
         dto.setRutaArchivo(entity.getRutaArchivo());
         dto.setRutaThumbnail(entity.getRutaThumbnail());
@@ -50,7 +51,10 @@ public class FotoMapper {
 
         if (entity.getUsuario() != null) {
             dto.setIdUsuario(entity.getUsuario().getId());
-            dto.setUsuarioNombre(entity.getUsuario().getNombre());
+            String nombre = entity.getUsuario().getNombre() != null ? entity.getUsuario().getNombre().trim() : "";
+            String apellido = entity.getUsuario().getApellido() != null ? entity.getUsuario().getApellido().trim() : "";
+            String nombreCompleto = (nombre + " " + apellido).trim();
+            dto.setUsuarioNombre(nombreCompleto.isEmpty() ? entity.getUsuario().getNombreUsuario() : nombreCompleto);
             dto.setUsuarioUsername(entity.getUsuario().getNombreUsuario());
         }
 
@@ -69,6 +73,7 @@ public class FotoMapper {
         entity.setIdFoto(dto.getIdFoto());
         entity.setTitulo(dto.getTitulo());
         entity.setDescripcion(dto.getDescripcion());
+        entity.setComentario(dto.getComentario());
         entity.setUrlCompleta(dto.getUrlCompleta());
         entity.setActivo(dto.getActivo());
         entity.setFechaSubida(dto.getFechaSubida());

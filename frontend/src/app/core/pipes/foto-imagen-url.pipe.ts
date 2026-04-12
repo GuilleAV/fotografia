@@ -29,10 +29,12 @@ export class FotoImagenUrlPipe implements PipeTransform {
       return null;
     }
 
-    // Verificar que la ruta exista para el tipo solicitado
-    const ruta = tipo === 'thumb' ? foto.rutaThumbnail
-      : tipo === 'web' ? foto.rutaWeb
-      : foto.rutaArchivo;
+    // Resolver ruta con fallback para datos legacy
+    const ruta = tipo === 'thumb'
+      ? (foto.rutaThumbnail || foto.rutaWeb || foto.rutaArchivo)
+      : tipo === 'web'
+        ? (foto.rutaWeb || foto.rutaArchivo || foto.rutaThumbnail)
+        : (foto.rutaArchivo || foto.rutaWeb || foto.rutaThumbnail);
 
     if (!ruta) {
       return null;

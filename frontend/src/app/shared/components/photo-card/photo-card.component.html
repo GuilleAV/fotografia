@@ -1,5 +1,9 @@
-<div class="photo-card" [routerLink]="['/foto', foto().idFoto]">
-  <div class="photo-wrapper">
+<div
+  class="photo-card"
+  [routerLink]="['/foto', foto().idFoto]"
+  [queryParams]="fromContext() ? { from: fromContext() } : null"
+>
+  <div class="photo-wrapper" [class.fit-contain]="fitMode() === 'contain'">
     <img
       [src]="foto() | fotoImagenUrl:'web'"
       [alt]="foto().titulo"
@@ -25,7 +29,7 @@
     }
     <div class="photo-meta">
       <span>👁 {{ foto().visitas }}</span>
-      <span>📅 {{ foto().fechaSubida | date:'shortDate' }}</span>
+      <span>📅 {{ foto().fechaSubida | date:'dd/MM/yyyy' }}</span>
     </div>
   </div>
 </div>

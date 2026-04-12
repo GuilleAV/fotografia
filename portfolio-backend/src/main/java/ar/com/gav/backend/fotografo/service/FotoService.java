@@ -165,7 +165,7 @@ public class FotoService extends BaseService<Foto> {
      * Sube una foto, procesa la imagen y la guarda en BD.
      */
     public FileUploadResponseDTO subirFoto(InputStream archivoStream, String nombreArchivo,
-                                           String titulo, String descripcion, Integer idCategoria,
+                                           String titulo, String descripcion, String comentario, Integer idCategoria,
                                            String username) throws Exception {
         LOG.info("=== SUBIR FOTO === User: " + username + ", File: " + nombreArchivo);
         // Obtener usuario
@@ -204,6 +204,7 @@ public class FotoService extends BaseService<Foto> {
         Foto foto = new Foto();
         foto.setTitulo(titulo);
         foto.setDescripcion(descripcion);
+        foto.setComentario(comentario);
         foto.setNombreArchivo(nombreArchivo);
         foto.setRutaArchivo(result.originalName);
         foto.setRutaThumbnail(result.thumbnailName);
@@ -266,6 +267,7 @@ public class FotoService extends BaseService<Foto> {
         // Actualizar campos opcionales
         if (dto.getTitulo() != null) foto.setTitulo(dto.getTitulo());
         if (dto.getDescripcion() != null) foto.setDescripcion(dto.getDescripcion());
+        if (dto.getComentario() != null) foto.setComentario(dto.getComentario());
         if (dto.getIdCategoria() != null) {
             Categoria cat = em.find(Categoria.class, dto.getIdCategoria());
             if (cat != null) foto.setCategoria(cat);
@@ -346,6 +348,23 @@ public class FotoService extends BaseService<Foto> {
         if (usuario == null) return false;
         String rol = usuario.getRol();
         return "ADMIN".equals(rol) || "SUPER_ADMIN".equals(rol);
+    }
+
+    /**
+     * Verifica si un usuario autenticado puede ver una foto privada
+     * (pendiente/rechazada): dueño o administrador.
+     */
+    public boolean puedeVerFotoPrivada(Integer idFoto, String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return false;
+        }
+
+        Foto foto = em.find(Foto.class, idFoto);
+        if (foto == null || foto.getUsuario() == null) {
+            return false;
+        }
+
+        return esAdmin(username) || foto.getUsuario().getNombreUsuario().equals(username);
     }
 
     // ============================================

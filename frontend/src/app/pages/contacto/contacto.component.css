@@ -1,0 +1,38 @@
+.contacto-layout {
+  padding: 2rem;
+  display: grid;
+  gap: 2rem;
+}
+
+.kicker {
+  color: var(--color-muted);
+  letter-spacing: 0.2em;
+  font-size: 0.72rem;
+  margin-bottom: 0.7rem;
+}
+
+.muted {
+  color: var(--color-muted);
+}
+
+.contacto-grid {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.contacto-grid a {
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.5rem;
+}
+
+.contacto-grid a:hover {
+  color: var(--color-accent);
+}
+
+@media (min-width: 900px) {
+  .contacto-layout {
+    grid-template-columns: 2fr 1fr;
+    align-items: end;
+  }
+}

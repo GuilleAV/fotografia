@@ -1,44 +1,369 @@
-/* === MOBILE FIRST === */
-.admin-section{padding:1.5rem 1rem;min-height:60vh}
-.container{max-width:1200px;margin:0 auto}
-h1{color:#111827;margin-bottom:1rem;font-size:1.5rem}
-.tabs{display:flex;gap:.25rem;margin-bottom:1.5rem;border-bottom:2px solid #e5e7eb;overflow-x:auto}
-.tabs button{padding:.7rem 1rem;background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;font-size:.9rem;color:#6b7280;transition:all .2s;margin-bottom:-2px;white-space:nowrap;font-weight:500}
-.tabs button.active{color:#6366F1;border-bottom-color:#6366F1;font-weight:700}
-.alert-success{background:#d1fae5;color:#065f46;padding:1rem;border-radius:8px;margin-bottom:1rem}
-.moderation-queue{display:flex;flex-direction:column;gap:1rem}
-.moderation-card{display:flex;flex-direction:column;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-.moderation-preview{width:100%;min-height:180px;background:#f3f4f6}
-.moderation-preview img{width:100%;height:100%;object-fit:cover}
-.moderation-info{padding:1rem}
-.moderation-info h3{margin:0 0 .4rem;color:#111827;font-size:1rem}
-.moderation-info p{margin:0 0 .5rem;color:#6b7280;font-size:.85rem}
-.meta{display:flex;flex-wrap:wrap;gap:.75rem;font-size:.8rem;color:#9ca3af;margin-bottom:1rem}
-.actions{display:flex;gap:.5rem}
-.btn-approve,.btn-reject{flex:1;color:#fff;border:none;padding:.75rem 1rem;border-radius:8px;cursor:pointer;font-weight:600;font-size:.9rem;transition:opacity .2s}
-.btn-approve{background:#10b981}
-.btn-approve:active{opacity:.8}
-.btn-reject{background:#ef4444}
-.btn-reject:active{opacity:.8}
-.empty{text-align:center;padding:2rem;color:#6b7280}
-.table-wrapper{overflow-x:auto;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-.photo-table{width:100%;min-width:650px;border-collapse:collapse;background:#fff}
-.photo-table th{background:#111827;color:#fff;padding:.75rem .5rem;text-align:left;font-size:.8rem;white-space:nowrap}
-.photo-table td{padding:.5rem;border-bottom:1px solid #f3f4f6;font-size:.85rem;vertical-align:middle}
-.table-thumb{width:50px;height:35px;object-fit:cover;border-radius:4px}
-.status-badge{padding:3px 6px;border-radius:4px;font-size:.7rem;font-weight:600;white-space:nowrap}
-.status-pendiente{background:#fef3c7;color:#92400e}
-.status-aprobada{background:#d1fae5;color:#065f46}
-.status-rechazada{background:#fee2e2;color:#991b1b}
-.foto-titulo{font-weight:600;color:#111827}
-.foto-meta{font-size:.75rem;color:#6b7280;margin-top:.25rem}
-.btn-toggle{background:none;border:none;font-size:1.25rem;cursor:pointer;padding:.25rem;transition:transform .2s}
-.btn-toggle:hover{transform:scale(1.2)}
-.btn-toggle:disabled{opacity:.3;cursor:not-allowed}
-.btn-toggle.active{color:#fbbf24}
-.orden-select{padding:.35rem .5rem;border:1px solid #d1d5db;border-radius:6px;font-size:.85rem;background:#fff;min-width:60px;cursor:pointer}
-.orden-select:disabled{background:#f3f4f6;color:#9ca3af;cursor:not-allowed}
-.btn-sm{border:none;padding:.35rem .6rem;border-radius:4px;font-size:.75rem;cursor:pointer;font-weight:500;margin-right:.25rem}
-.btn-sm.btn-approve{background:#10b981;color:#fff}
-.btn-sm.btn-reject{background:#ef4444;color:#fff}
-@media(min-width:600px){.admin-section{padding:2rem 1.5rem}h1{font-size:1.8rem}.tabs button{font-size:1rem;padding:.7rem 1.5rem}.moderation-card{flex-direction:row}.moderation-preview{width:250px;min-height:180px}.moderation-info{padding:1.5rem}.moderation-info h3{font-size:1.1rem}.actions{flex:none}.btn-approve,.btn-reject{flex:none;padding:.5rem 1.2rem}}
+.admin-section {
+  padding: 1.5rem 1rem;
+  min-height: 60vh;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+h1 {
+  color: var(--color-text);
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+}
+
+.tabs button {
+  padding: 0.7rem 1rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #4d473b;
+  transition: all 0.2s;
+  margin-bottom: -1px;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.tabs button.active {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+  font-weight: 700;
+}
+
+.alert-success {
+  background: #e8f6ec;
+  color: #14532d;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border: 1px solid #9fd5ae;
+}
+
+.alert-error {
+  background: #fdecec;
+  color: #7f1d1d;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border: 1px solid #f0b5b5;
+}
+
+.moderation-queue {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.moderation-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.moderation-preview {
+  width: 100%;
+  min-height: 180px;
+  background: #0f1118;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.moderation-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.moderation-info {
+  padding: 1rem;
+}
+
+.moderation-info h3 {
+  margin: 0 0 0.4rem;
+  color: var(--color-text);
+  font-size: 1rem;
+}
+
+.moderation-info p {
+  margin: 0 0 0.5rem;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  margin-bottom: 1rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-approve,
+.btn-reject {
+  flex: 1;
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: opacity 0.2s;
+}
+
+.btn-approve {
+  background: #16a34a;
+}
+
+.btn-reject {
+  background: #dc2626;
+}
+
+.empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--color-muted);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+}
+
+.photo-table {
+  width: 100%;
+  min-width: 650px;
+  border-collapse: collapse;
+  background: var(--color-surface);
+}
+
+.photo-table th {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-muted);
+  padding: 0.75rem 0.5rem;
+  text-align: left;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.photo-table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.85rem;
+  vertical-align: middle;
+}
+
+.table-thumb {
+  width: 86px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.thumb-btn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.status-badge {
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-pendiente {
+  background: #fff4cc;
+  color: #7a5200;
+}
+
+.status-aprobada {
+  background: #e7f7ea;
+  color: #14532d;
+}
+
+.status-rechazada {
+  background: #fdecec;
+  color: #7f1d1d;
+}
+
+.foto-titulo {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.foto-meta {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  margin-top: 0.25rem;
+}
+
+.btn-toggle {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: transform 0.2s;
+}
+
+.btn-toggle:hover {
+  transform: scale(1.2);
+}
+
+.btn-toggle:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.btn-toggle.active {
+  color: var(--color-accent);
+}
+
+.orden-select {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  background: #ffffff;
+  color: var(--color-text);
+  min-width: 60px;
+  cursor: pointer;
+}
+
+.orden-select:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-sm {
+  border: none;
+  padding: 0.35rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  font-weight: 500;
+  margin-right: 0.25rem;
+}
+
+.btn-sm.btn-approve {
+  background: #16a34a;
+  color: #fff;
+}
+
+.btn-sm.btn-reject {
+  background: #dc2626;
+  color: #fff;
+}
+
+.preview-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1250;
+  background: rgba(16, 13, 9, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: grid;
+  place-items: center;
+}
+
+.preview-stage {
+  max-width: min(95vw, 1320px);
+  max-height: 95vh;
+  display: grid;
+  gap: 0.5rem;
+  justify-items: center;
+}
+
+.preview-stage img {
+  max-width: 95vw;
+  max-height: 88vh;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.preview-stage p {
+  color: #fff;
+  font-size: 0.92rem;
+}
+
+.preview-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(17, 14, 10, 0.55);
+  color: #fff;
+  cursor: pointer;
+}
+
+@media (min-width: 600px) {
+  .admin-section {
+    padding: 2rem 1.5rem;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  .tabs button {
+    font-size: 1rem;
+    padding: 0.7rem 1.5rem;
+  }
+
+  .moderation-card {
+    flex-direction: row;
+  }
+
+  .moderation-preview {
+    width: 250px;
+    min-height: 180px;
+  }
+
+  .moderation-info {
+    padding: 1.5rem;
+  }
+
+  .moderation-info h3 {
+    font-size: 1.1rem;
+  }
+
+  .actions {
+    flex: none;
+  }
+
+  .btn-approve,
+  .btn-reject {
+    flex: none;
+    padding: 0.5rem 1.2rem;
+  }
+}

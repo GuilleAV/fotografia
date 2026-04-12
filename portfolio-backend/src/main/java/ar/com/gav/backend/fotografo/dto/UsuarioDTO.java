@@ -23,6 +23,9 @@ public class UsuarioDTO implements Serializable {
     private String rol;
     private Boolean activo;
     private String fotoPerfil;
+    private String socialYoutube;
+    private String socialInstagram;
+    private String socialThreads;
     private LocalDateTime fechaCreacion;
     private LocalDateTime ultimaSesion;
     private Integer cantidadFotos;
@@ -50,6 +53,9 @@ public class UsuarioDTO implements Serializable {
         this.rol = usuario.getRol();
         this.nombreCompleto = usuario.getNombre() + " " + usuario.getApellido();
         this.fotoPerfil = usuario.getFotoPerfil();
+        this.socialYoutube = usuario.getSocialYoutube();
+        this.socialInstagram = usuario.getSocialInstagram();
+        this.socialThreads = usuario.getSocialThreads();
     }
 
 
@@ -124,6 +130,30 @@ public class UsuarioDTO implements Serializable {
 
     public void setFotoPerfil(String fotoPerfil) {
         this.fotoPerfil = fotoPerfil;
+    }
+
+    public String getSocialYoutube() {
+        return socialYoutube;
+    }
+
+    public void setSocialYoutube(String socialYoutube) {
+        this.socialYoutube = socialYoutube;
+    }
+
+    public String getSocialInstagram() {
+        return socialInstagram;
+    }
+
+    public void setSocialInstagram(String socialInstagram) {
+        this.socialInstagram = socialInstagram;
+    }
+
+    public String getSocialThreads() {
+        return socialThreads;
+    }
+
+    public void setSocialThreads(String socialThreads) {
+        this.socialThreads = socialThreads;
     }
 
     public LocalDateTime getFechaCreacion() {

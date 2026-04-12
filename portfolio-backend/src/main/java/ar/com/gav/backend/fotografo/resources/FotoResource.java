@@ -1,8 +1,10 @@
 package ar.com.gav.backend.fotografo.resources;
 
 import ar.com.gav.backend.fotografo.dto.*;
+import ar.com.gav.backend.fotografo.entity.Categoria;
 import ar.com.gav.backend.fotografo.security.JwtUtil;
 import ar.com.gav.backend.fotografo.security.Secured;
+import ar.com.gav.backend.fotografo.service.CategoriaService;
 import ar.com.gav.backend.fotografo.service.FotoService;
 
 import javax.inject.Inject;
@@ -25,6 +27,9 @@ public class FotoResource {
 
     @Inject
     private FotoService fotoService;
+
+    @Inject
+    private CategoriaService categoriaService;
 
     @Inject
     private JwtUtil jwtUtil;
@@ -86,7 +91,9 @@ public class FotoResource {
 
     @GET
     @Path("/{id}")
-    public Response obtener(@PathParam("id") Integer id) {
+    public Response obtener(@PathParam("id") Integer id,
+                           @HeaderParam("Authorization") String authHeader,
+                           @QueryParam("token") String queryToken) {
         LOG.info("=== OBTENER FOTO === ID: " + id);
         try {
             FotoDTO dto = fotoService.buscarPorId(id);
@@ -95,12 +102,24 @@ public class FotoResource {
                 return Response.status(Response.Status.NOT_FOUND)
                         .entity(errorResponse("Foto no encontrada")).build();
             }
+
+            String usernameAuth = obtenerUsernameOpcional(authHeader, queryToken);
             if (!"APROBADA".equals(dto.getEstado())) {
-                LOG.warning("Photo not available - state: " + dto.getEstado());
-                return Response.status(Response.Status.FORBIDDEN)
-                        .entity(errorResponse("Foto no disponible")).build();
+                boolean puedeVerPrivada = usernameAuth != null && fotoService.puedeVerFotoPrivada(id, usernameAuth);
+                if (!puedeVerPrivada) {
+                    LOG.warning("Photo not available - state: " + dto.getEstado());
+                    return Response.status(Response.Status.FORBIDDEN)
+                            .entity(errorResponse("Foto no disponible")).build();
+                }
             }
-            fotoService.incrementarVisitas(id);
+
+            boolean esAutenticado = usernameAuth != null;
+            if (!esAutenticado) {
+                fotoService.incrementarVisitas(id);
+            } else {
+                LOG.fine("View NOT counted for authenticated user on photo: " + id);
+            }
+
             LOG.info("Photo retrieved: " + dto.getTitulo());
             return Response.ok(dto).build();
         } catch (Exception e) {
@@ -119,6 +138,27 @@ public class FotoResource {
             return Response.ok(fotos).build();
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Error listing photos by category: " + idCategoria, e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorResponse("Error al listar fotos")).build();
+        }
+    }
+
+    @GET
+    @Path("/categoria/slug/{slug}")
+    public Response listarPorCategoriaSlug(@PathParam("slug") String slug) {
+        LOG.info("=== LISTAR POR CATEGORIA SLUG === Slug: " + slug);
+        try {
+            Categoria categoria = categoriaService.buscarActivaPorSlug(slug);
+            if (categoria == null) {
+                LOG.warning("Category NOT FOUND or INACTIVE for slug: " + slug);
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity(errorResponse("Categoría no encontrada")).build();
+            }
+
+            List<FotoDTO> fotos = fotoService.listarPorCategoriaAprobadas(categoria.getIdCategoria());
+            LOG.info("Found " + fotos.size() + " photos in category slug " + slug);
+            return Response.ok(fotos).build();
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Error listing photos by category slug: " + slug, e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorResponse("Error al listar fotos")).build();
         }
     }
@@ -170,6 +210,7 @@ public class FotoResource {
             Part archivoPart = null;
             String titulo = null;
             String descripcion = null;
+            String comentario = null;
             Integer idCategoria = null;
 
             for (Part part : parts) {
@@ -179,6 +220,8 @@ public class FotoResource {
                     titulo = getPartValue(part);
                 } else if ("descripcion".equals(part.getName())) {
                     descripcion = getPartValue(part);
+                } else if ("comentario".equals(part.getName())) {
+                    comentario = getPartValue(part);
                 } else if ("idCategoria".equals(part.getName())) {
                     String val = getPartValue(part);
                     if (val != null) idCategoria = Integer.parseInt(val);
@@ -225,7 +268,7 @@ public class FotoResource {
             // Procesar imagen y guardar
             try (InputStream archivoStream = archivoPart.getInputStream()) {
                 FileUploadResponseDTO response = fotoService.subirFoto(
-                        archivoStream, nombreArchivo, titulo, descripcion, idCategoria, username);
+                        archivoStream, nombreArchivo, titulo, descripcion, comentario, idCategoria, username);
                 LOG.info("Photo UPLOADED successfully: " + response.getNombreArchivo());
                 return Response.status(Response.Status.CREATED).entity(response).build();
             }
@@ -579,6 +622,28 @@ public class FotoResource {
         if (!fotoService.esAdmin(username)) {
             throw new SecurityException("Se requiere rol de administrador. User: " + username);
         }
+    }
+
+    private String obtenerUsernameOpcional(String authHeader, String queryToken) {
+        try {
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring("Bearer ".length());
+                if (JwtUtil.validarToken(token)) {
+                    return jwtUtil.obtenerUsername(token);
+                }
+            }
+
+            if (queryToken != null && !queryToken.trim().isEmpty()) {
+                String token = queryToken.trim();
+                if (JwtUtil.validarToken(token)) {
+                    return jwtUtil.obtenerUsername(token);
+                }
+            }
+        } catch (Exception ignored) {
+            // Si no se puede extraer usuario, tratamos como request pública
+        }
+
+        return null;
     }
 
     private Map<String, String> errorResponse(String mensaje) {

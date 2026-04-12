@@ -44,6 +44,15 @@ public class Usuario implements Serializable {
     @Column(name = "foto_perfil", length = 255)
     private String fotoPerfil;
 
+    @Column(name = "social_youtube", length = 255)
+    private String socialYoutube;
+
+    @Column(name = "social_instagram", length = 255)
+    private String socialInstagram;
+
+    @Column(name = "social_threads", length = 255)
+    private String socialThreads;
+
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 
@@ -143,6 +152,30 @@ public class Usuario implements Serializable {
 
     public void setFotoPerfil(String fotoPerfil) {
         this.fotoPerfil = fotoPerfil;
+    }
+
+    public String getSocialYoutube() {
+        return socialYoutube;
+    }
+
+    public void setSocialYoutube(String socialYoutube) {
+        this.socialYoutube = socialYoutube;
+    }
+
+    public String getSocialInstagram() {
+        return socialInstagram;
+    }
+
+    public void setSocialInstagram(String socialInstagram) {
+        this.socialInstagram = socialInstagram;
+    }
+
+    public String getSocialThreads() {
+        return socialThreads;
+    }
+
+    public void setSocialThreads(String socialThreads) {
+        this.socialThreads = socialThreads;
     }
 
     public LocalDateTime getFechaCreacion() {

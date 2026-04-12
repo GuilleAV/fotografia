@@ -19,6 +19,9 @@ public class FotoUpdateDTO implements Serializable {
     @Size(max = 1000, message = "La descripción no puede superar los 1000 caracteres")
     private String descripcion;
 
+    @Size(max = 1000, message = "El comentario no puede superar los 1000 caracteres")
+    private String comentario;
+
     private Integer idCategoria;
 
     private Boolean destacada;
@@ -48,6 +51,14 @@ public class FotoUpdateDTO implements Serializable {
 
     public void setDescripcion(String descripcion) {
         this.descripcion = descripcion;
+    }
+
+    public String getComentario() {
+        return comentario;
+    }
+
+    public void setComentario(String comentario) {
+        this.comentario = comentario;
     }
 
     public Integer getIdCategoria() {

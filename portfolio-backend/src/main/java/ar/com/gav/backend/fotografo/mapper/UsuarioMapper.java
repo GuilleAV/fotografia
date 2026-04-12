@@ -16,6 +16,9 @@ public class UsuarioMapper {
         dto.setRol(entity.getRol());
         dto.setActivo(entity.getActivo());
         dto.setFotoPerfil(entity.getFotoPerfil());
+        dto.setSocialYoutube(entity.getSocialYoutube());
+        dto.setSocialInstagram(entity.getSocialInstagram());
+        dto.setSocialThreads(entity.getSocialThreads());
         dto.setFechaCreacion(entity.getFechaCreacion());
         dto.setUltimaSesion(entity.getUltimaSesion());
         return dto;
@@ -32,6 +35,9 @@ public class UsuarioMapper {
         entity.setRol(dto.getRol());
         entity.setActivo(dto.getActivo());
         entity.setFotoPerfil(dto.getFotoPerfil());
+        entity.setSocialYoutube(dto.getSocialYoutube());
+        entity.setSocialInstagram(dto.getSocialInstagram());
+        entity.setSocialThreads(dto.getSocialThreads());
         return entity;
     }
 }

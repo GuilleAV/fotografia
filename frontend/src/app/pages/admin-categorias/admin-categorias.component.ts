@@ -15,6 +15,10 @@ export class AdminCategoriasComponent implements OnInit {
   private service = inject(CategoriaService);
   private fb = inject(FormBuilder);
   private cdr = inject(ChangeDetectorRef);
+  private readonly reservedSlugs = new Set([
+    'about', 'contacto', 'contact', 'login', 'recuperar', 'reset-password',
+    'dashboard', 'admin', 'usuarios', 'unauthorized', 'foto', 'api', 'auth'
+  ]);
 
   categorias = signal<Categoria[]>([]);
   editandoId = signal<number | null>(null);
@@ -51,9 +55,20 @@ export class AdminCategoriasComponent implements OnInit {
 
     this.error.set(null);
 
+    const slugNormalizado = this.normalizarSlug(this.form.value.slug || '');
+    if (!slugNormalizado) {
+      this.error.set('El slug es inválido');
+      return;
+    }
+
+    if (this.reservedSlugs.has(slugNormalizado)) {
+      this.error.set('Ese slug está reservado para rutas del sistema');
+      return;
+    }
+
     const data: Partial<Categoria> = {
       nombre: this.form.value.nombre!,
-      slug: this.form.value.slug!,
+      slug: slugNormalizado,
       icono: this.form.value.icono || 'fa-solid fa-camera',
       color: this.form.value.color || '#3498db',
       orden: this.form.value.orden || 0,
@@ -123,5 +138,15 @@ export class AdminCategoriasComponent implements OnInit {
       activo: true,
     });
     this.cdr.markForCheck();
+  }
+
+  private normalizarSlug(value: string): string {
+    return value
+      .trim()
+      .toLowerCase()
+      .replace(/[\s,;]+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/-{2,}/g, '-')
+      .replace(/^-|-$/g, '');
   }
 }

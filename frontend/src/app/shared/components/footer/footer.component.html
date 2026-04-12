@@ -1,24 +1,38 @@
 <footer class="site-footer">
-  <div class="footer-content">
-    <div class="footer-section">
-      <h3>📷 FotoPortfolio</h3>
-      <p>Plataforma para fotógrafos profesionales</p>
-    </div>
-    <div class="footer-section">
-      <h4>Contacto</h4>
-      <p>📧 contacto&#64;fotoportfolio.com</p>
-      <p>📱 +54 9 11 1234-5678</p>
-    </div>
-    <div class="footer-section">
-      <h4>Redes</h4>
-      <div class="social-links">
-        <a href="#" aria-label="Instagram">📸</a>
-        <a href="#" aria-label="Facebook">👤</a>
-        <a href="#" aria-label="Twitter">🐦</a>
+  <div class="container">
+    @if (isAdminContext()) {
+      <div class="footer-admin">
+        <p>Panel de gestión · {{ nombreMarca() }}</p>
+        <a routerLink="/" class="footer-link">Ir al sitio público</a>
       </div>
+    } @else {
+      <div class="footer-public">
+        <div>
+          <p class="eyebrow">FOTOGRAFÍA</p>
+          <h3>{{ nombreMarca() }}</h3>
+        </div>
+
+        <div class="footer-nav">
+          <a routerLink="/about">Nosotros</a>
+          <a routerLink="/contacto">Contacto</a>
+        </div>
+
+        <div class="social-links">
+          @if (perfilPublico()?.socialInstagram) {
+            <a [href]="perfilPublico()!.socialInstagram" target="_blank" rel="noopener noreferrer" aria-label="Instagram">Instagram</a>
+          }
+          @if (perfilPublico()?.socialYoutube) {
+            <a [href]="perfilPublico()!.socialYoutube" target="_blank" rel="noopener noreferrer" aria-label="YouTube">YouTube</a>
+          }
+          @if (perfilPublico()?.socialThreads) {
+            <a [href]="perfilPublico()!.socialThreads" target="_blank" rel="noopener noreferrer" aria-label="Threads">Threads</a>
+          }
+        </div>
+      </div>
+    }
+
+    <div class="footer-bottom">
+      <p>&copy; {{ currentYear }} Sentir Fotográfico · Todos los derechos reservados</p>
     </div>
-  </div>
-  <div class="footer-bottom">
-    <p>&copy; {{ currentYear }} FotoPortfolio. Todos los derechos reservados.</p>
   </div>
 </footer>

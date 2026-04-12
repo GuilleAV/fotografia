@@ -1,49 +1,66 @@
-/* === MOBILE FIRST === */
 .site-footer {
-  background: #1a1a2e;
-  color: #aaa;
-  padding: 2rem 1rem 1rem;
   margin-top: auto;
-}
-.footer-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
-.footer-section h3, .footer-section h4 {
-  color: #fff;
-  margin: 0 0 0.5rem;
-  font-size: 1rem;
-}
-.footer-section p {
-  margin: 0.25rem 0;
-  font-size: 0.85rem;
-}
-.social-links {
-  display: flex;
-  gap: 1rem;
-}
-.social-links a {
-  font-size: 1.5rem;
-  text-decoration: none;
-  transition: transform 0.2s;
-}
-.social-links a:hover { transform: scale(1.2); }
-.footer-bottom {
-  text-align: center;
-  padding-top: 1.5rem;
-  margin-top: 1.5rem;
-  border-top: 1px solid rgba(255,255,255,0.1);
-  font-size: 0.8rem;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface-soft);
+  padding: 1.8rem 0 1rem;
 }
 
-/* === TABLET (min-width: 600px) === */
-@media (min-width: 600px) {
-  .footer-content {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
+.footer-public {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.eyebrow {
+  letter-spacing: 0.22em;
+  font-size: 0.68rem;
+  color: var(--color-muted);
+  margin-bottom: 0.4rem;
+}
+
+h3 {
+  font-size: 1.15rem;
+}
+
+.footer-nav,
+.social-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.footer-nav a,
+.social-links a,
+.footer-link {
+  color: var(--color-muted);
+  font-size: 0.86rem;
+}
+
+.footer-nav a:hover,
+.social-links a:hover,
+.footer-link:hover {
+  color: var(--color-text);
+}
+
+.footer-admin {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--color-muted);
+  font-size: 0.88rem;
+}
+
+.footer-bottom {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-muted);
+  font-size: 0.78rem;
+}
+
+@media (min-width: 768px) {
+  .footer-public {
+    grid-template-columns: 1fr auto auto;
+    align-items: end;
   }
-  .site-footer { padding: 2.5rem 2rem 1rem; }
 }

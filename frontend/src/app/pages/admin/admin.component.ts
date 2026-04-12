@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FotoService } from '../../core/services/foto.service';
-import { Foto, FotoUpdateRequest } from '../../core/models';
+import { Foto } from '../../core/models';
 import { FotoImagenUrlPipe } from '../../core/pipes/foto-imagen-url.pipe';
 
 @Component({
@@ -19,6 +19,8 @@ export class AdminComponent implements OnInit {
   todas = signal<Foto[]>([]);
   activeTab = signal<'pendientes' | 'todas'>('pendientes');
   message = signal<string | null>(null);
+  messageType = signal<'success' | 'error'>('success');
+  fotoPreview = signal<Foto | null>(null);
 
   ngOnInit() {
     this.loadPendientes();
@@ -46,6 +48,7 @@ export class AdminComponent implements OnInit {
   aprobar(foto: Foto) {
     this.fotoService.cambiarEstado(foto.idFoto, { estado: 'APROBADA' }).subscribe({
       next: () => {
+        this.messageType.set('success');
         this.message.set(`"${foto.titulo}" aprobada correctamente`);
         this.loadPendientes();
         this.loadTodas();
@@ -53,6 +56,7 @@ export class AdminComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error aprobando foto:', err);
+        this.messageType.set('error');
         this.message.set('Error al aprobar la foto: ' + (err.error?.error || err.message));
         setTimeout(() => this.message.set(null), 5000);
       },
@@ -62,6 +66,7 @@ export class AdminComponent implements OnInit {
   rechazar(foto: Foto) {
     this.fotoService.cambiarEstado(foto.idFoto, { estado: 'RECHAZADA' }).subscribe({
       next: () => {
+        this.messageType.set('success');
         this.message.set(`"${foto.titulo}" rechazada`);
         this.loadPendientes();
         this.loadTodas();
@@ -69,50 +74,18 @@ export class AdminComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error rechazando foto:', err);
+        this.messageType.set('error');
         this.message.set('Error al rechazar la foto: ' + (err.error?.error || err.message));
         setTimeout(() => this.message.set(null), 5000);
       },
     });
   }
 
-  // Toggle destacada (mostrar en sección destacadas)
-  toggleDestacada(foto: Foto) {
-    const nuevaDestacada = !foto.destacada;
-    const data: FotoUpdateRequest = { destacada: nuevaDestacada };
-    
-    this.fotoService.actualizar(foto.idFoto, data).subscribe({
-      next: () => {
-        this.message.set(nuevaDestacada 
-          ? `"${foto.titulo}" ahora es destacada` 
-          : `"${foto.titulo}" ya no es destacada`);
-        this.loadTodas();
-        setTimeout(() => this.message.set(null), 3000);
-      },
-      error: (err) => {
-        this.message.set('Error al actualizar: ' + (err.error?.error || err.message));
-        setTimeout(() => this.message.set(null), 5000);
-      },
-    });
+  abrirPreview(foto: Foto) {
+    this.fotoPreview.set(foto);
   }
 
-  // Toggle orden del carousel (1-5, o null para quitar)
-  setOrden(foto: Foto, orden: number | null) {
-    const data: FotoUpdateRequest = { orden: orden };
-    
-    this.fotoService.actualizar(foto.idFoto, data).subscribe({
-      next: () => {
-        if (orden === null) {
-          this.message.set(`"${foto.titulo}" removida del carousel`);
-        } else {
-          this.message.set(`"${foto.titulo}" asignada al carousel (posición ${orden})`);
-        }
-        this.loadTodas();
-        setTimeout(() => this.message.set(null), 3000);
-      },
-      error: (err) => {
-        this.message.set('Error al actualizar: ' + (err.error?.error || err.message));
-        setTimeout(() => this.message.set(null), 5000);
-      },
-    });
+  cerrarPreview() {
+    this.fotoPreview.set(null);
   }
 }

@@ -1,7 +1,7 @@
 @if (loading()) {
-  <section class="detail-section">
+  <section class="detail-shell">
     <div class="container">
-      <app-skeleton height="60vh" />
+      <app-skeleton height="72vh" />
       <div style="margin-top: 1.5rem;">
         <app-skeleton width="300px" height="2rem" />
         <app-skeleton width="200px" height="1rem" style="margin-top: 0.5rem;" />
@@ -9,113 +9,70 @@
     </div>
   </section>
 } @else if (error()) {
-  <section class="detail-section">
+  <section class="detail-shell">
     <div class="container error-state">
       <h2>Error al cargar la foto</h2>
       <p>{{ error() }}</p>
-      <a routerLink="/galeria" class="btn-back">← Volver a la galería</a>
+      <a routerLink="/" class="btn-back">← Volver al inicio</a>
     </div>
   </section>
 } @else if (foto()) {
-  <section class="detail-section">
+  <section class="detail-shell">
     <div class="container">
-      <!-- Breadcrumb -->
-      <nav class="breadcrumb">
-        <a routerLink="/">Inicio</a>
-        <span>/</span>
-        <a routerLink="/galeria">Galería</a>
-        <span>/</span>
-        <span class="current">{{ foto()!.titulo }}</span>
-      </nav>
-
-      <!-- Main Image -->
-      <div class="image-container" (click)="openLightbox()">
-        <img
-          [src]="foto() | fotoImagenUrl:'web'"
-          [alt]="foto()!.titulo"
-          class="main-image"
-        />
-        <div class="zoom-hint">
-          <i class="fas fa-expand"></i> Click para ver en tamaño completo
-        </div>
+      <div class="detail-topbar">
+        <a class="back-link" [routerLink]="backLink()">
+          ← {{ backLabel() }}
+        </a>
+        @if (contador()) {
+          <span class="counter">{{ contador() }}</span>
+        }
       </div>
 
-      <!-- Info -->
-      <div class="info-grid">
-        <div class="info-main">
-          <h1>{{ foto()!.titulo }}</h1>
-          @if (foto()!.descripcion) {
-            <p class="description">{{ foto()!.descripcion }}</p>
-          }
-          <div class="meta-row">
-            @if (foto()!.usuarioNombre) {
-              <span class="meta-item">📷 {{ foto()!.usuarioNombre }}</span>
-            }
-            @if (foto()!.categoriaNombre) {
-              <span class="meta-item">📂 {{ foto()!.categoriaNombre }}</span>
-            }
-            <span class="meta-item">👁 {{ foto()!.visitas }} visitas</span>
-            <span class="meta-item">📅 {{ foto()!.fechaSubida | date:'longDate' }}</span>
-          </div>
-          @if (foto()!.etiquetas && foto()!.etiquetas!.length > 0) {
-            <div class="tags">
-              @for (tag of foto()!.etiquetas; track tag) {
-                <span class="tag">{{ tag }}</span>
-              }
-            </div>
-          }
+      <div class="viewer-wrap" [class.switching]="switching()">
+        <button class="viewer-nav left" (click)="irAnterior()" [disabled]="!puedeIrAnterior()" aria-label="Foto anterior">
+          ‹
+        </button>
+
+        <div
+          class="viewer-image"
+          [class.is-loading]="!imageVisible()"
+          (touchstart)="onTouchStart($event)"
+          (touchend)="onTouchEnd($event)"
+        >
+          <img [src]="foto() | fotoImagenUrl:'web'" [alt]="foto()!.titulo" class="main-image" [class.visible]="imageVisible()" />
         </div>
 
-        <div class="info-sidebar">
-          <h3>Det Técnicos</h3>
-          <table class="tech-table">
-            @if (foto()!.anchoPx && foto()!.altoPx) {
-              <tr>
-                <td>Dimensiones</td>
-                <td>{{ foto()!.anchoPx }} × {{ foto()!.altoPx }} px</td>
-              </tr>
-            }
-            @if (foto()!.tamanioKb) {
-              <tr>
-                <td>Tamaño</td>
-                <td>{{ foto()!.tamanioKb }} KB</td>
-              </tr>
-            }
-            <tr>
-              <td>Estado</td>
-              <td>
-                <span class="status-badge" [class]="'status-' + foto()!.estado.toLowerCase()">
-                  {{ foto()!.estado }}
-                </span>
-              </td>
-            </tr>
-          </table>
-
-          @if (auth.isAdmin()) {
-            <div class="admin-actions">
-              <h3>Acciones de Admin</h3>
-              @if (foto()!.estado !== 'APROBADA') {
-                <button class="btn-approve" (click)="aprobar()">✓ Aprobar</button>
-              }
-              @if (foto()!.estado !== 'RECHAZADA') {
-                <button class="btn-reject" (click)="rechazar()">✗ Rechazar</button>
-              }
-            </div>
-          }
-        </div>
+        <button class="viewer-nav right" (click)="irSiguiente()" [disabled]="!puedeIrSiguiente()" aria-label="Foto siguiente">
+          ›
+        </button>
       </div>
+
+      @if (fotosCategoria().length > 1) {
+        <p class="mobile-hint">Deslizá la foto para navegar</p>
+      }
+
+      @if (foto()!.titulo) {
+        <h1 class="photo-title">{{ foto()!.titulo }}</h1>
+      }
+
+      @if (foto()!.descripcion) {
+        <p class="photo-description">{{ foto()!.descripcion }}</p>
+      }
+
+      @if (fotosCategoria().length > 1) {
+        <div class="thumb-strip">
+          @for (item of fotosCategoria(); track item.idFoto) {
+            <button
+              class="thumb-btn"
+              [class.active]="item.idFoto === foto()!.idFoto"
+              (click)="abrirFoto(item.idFoto)"
+              [attr.aria-label]="'Abrir ' + item.titulo"
+            >
+              <img [src]="item | fotoImagenUrl:'thumb'" [alt]="item.titulo" loading="lazy" />
+            </button>
+          }
+        </div>
+      }
     </div>
   </section>
-
-  <!-- Lightbox Overlay -->
-  @if (lightboxOpen()) {
-    <div class="lightbox" (click)="closeLightbox()">
-      <button class="lightbox-close" (click)="closeLightbox()">✕</button>
-      <img
-        [src]="foto() | fotoImagenUrl:'web'"
-        [alt]="foto()!.titulo"
-        (click)="$event.stopPropagation()"
-      />
-    </div>
-  }
 }

@@ -14,4 +14,6 @@ import { FotoImagenUrlPipe } from '../../../core/pipes/foto-imagen-url.pipe';
 })
 export class PhotoCardComponent {
   foto = input.required<Foto>();
+  fitMode = input<'cover' | 'contain'>('cover');
+  fromContext = input<string | null>(null);
 }

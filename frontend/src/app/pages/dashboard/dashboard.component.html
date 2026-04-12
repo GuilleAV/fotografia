@@ -6,83 +6,230 @@
         <p>Gestioná tu portfolio fotográfico</p>
       </div>
       <button class="btn-upload" (click)="showUpload = !showUpload">
-        {{ showUpload ? 'Cancelar' : '+ Subir Foto' }}
+        {{ showUpload ? 'Cancelar' : '+ Subir Fotos' }}
       </button>
     </div>
 
     <!-- Upload Form -->
     @if (showUpload) {
       <div class="upload-card">
-        <h2>Subir Nueva Foto</h2>
-        <form (ngSubmit)="onUpload()" #uploadForm="ngForm">
-          @if (uploadMessage()) {
-            <div [class]="uploadSuccess() ? 'alert-success' : 'alert-error'">
-              {{ uploadMessage() }}
+        <h2>Subida rápida (una foto)</h2>
+        <form (ngSubmit)="onQuickUpload()" class="quick-form">
+          @if (quickMessage()) {
+            <div [class]="quickSuccess() ? 'alert-success' : 'alert-error'">
+              {{ quickMessage() }}
             </div>
           }
 
           <div class="form-row">
             <div class="form-group">
-              <label for="archivo">Archivo</label>
+              <label for="quick-archivo">Archivo</label>
               <input
-                id="archivo"
+                id="quick-archivo"
                 type="file"
-                accept="image/jpeg,image/png,image/webp"
-                (change)="onFileSelected($event)"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                (change)="onQuickFileSelected($event)"
                 required
               />
-              <small>JPG, PNG, WebP o GIF. Máximo 30MB.</small>
+            </div>
+            <div class="form-group">
+              <label for="quick-titulo">Título</label>
+              <input id="quick-titulo" type="text" [(ngModel)]="quickData.titulo" name="quick-titulo" required />
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label for="titulo">Título</label>
-              <input
-                id="titulo"
-                type="text"
-                [(ngModel)]="uploadData.titulo"
-                name="titulo"
-                required
-                placeholder="Título de la foto"
-              />
-            </div>
-            <div class="form-group">
-              <label for="categoria">Categoría</label>
-              <select
-                id="categoria"
-                [(ngModel)]="uploadData.idCategoria"
-                name="categoria"
-                required
-              >
+              <label for="quick-categoria">Categoría</label>
+              <select id="quick-categoria" [(ngModel)]="quickData.idCategoria" name="quick-categoria" required>
                 <option [ngValue]="null">Seleccionar...</option>
                 @for (cat of categorias(); track cat.idCategoria) {
                   <option [ngValue]="cat.idCategoria">{{ cat.nombre }}</option>
                 }
               </select>
             </div>
+            <div class="form-group">
+              <label for="quick-descripcion">Descripción</label>
+              <textarea id="quick-descripcion" [(ngModel)]="quickData.descripcion" name="quick-descripcion" rows="2"></textarea>
+            </div>
           </div>
 
           <div class="form-group">
-            <label for="descripcion">Descripción</label>
-            <textarea
-              id="descripcion"
-              [(ngModel)]="uploadData.descripcion"
-              name="descripcion"
-              placeholder="Descripción opcional"
-              rows="3"
-            ></textarea>
+            <label for="quick-comentario">Comentario</label>
+            <textarea id="quick-comentario" [(ngModel)]="quickData.comentario" name="quick-comentario" rows="2"></textarea>
           </div>
 
-          <button type="submit" class="btn-submit" [disabled]="uploading()">
-            {{ uploading() ? 'Subiendo...' : 'Subir Foto' }}
+          <button type="submit" class="btn-submit" [disabled]="quickUploading()">
+            {{ quickUploading() ? 'Subiendo...' : 'Subir una foto' }}
           </button>
         </form>
+
+        <hr class="upload-divider" />
+
+        <h2>Subida por lote (arrastrar varias)</h2>
+
+        @if (uploadMessage()) {
+          <div [class]="uploadSuccess() ? 'alert-success' : 'alert-error'">
+            {{ uploadMessage() }}
+          </div>
+        }
+
+        <input
+          #batchFileInput
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          multiple
+          class="hidden-input"
+          (change)="onFileSelected($event)"
+        />
+
+        <div
+          class="drop-zone"
+          [class.active]="dragActive()"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)"
+        >
+          <p>Arrastrá tus fotos acá</p>
+          <button type="button" class="btn-select" (click)="batchFileInput.click()">Seleccionar archivos</button>
+        </div>
+
+        @if (uploadQueue().length > 0) {
+          <div class="bulk-actions card-surface">
+            <h3>Acciones masivas (sin perder edición por fila)</h3>
+
+            <div class="mode-switch">
+              <button
+                type="button"
+                class="mode-btn"
+                [class.active]="modoLote() === 'compacto'"
+                (click)="setModoLote('compacto')"
+              >
+                Modo compacto
+              </button>
+              <button
+                type="button"
+                class="mode-btn"
+                [class.active]="modoLote() === 'detalle'"
+                (click)="setModoLote('detalle')"
+              >
+                Modo detalle
+              </button>
+            </div>
+
+            <div class="bulk-grid">
+              <div class="form-group">
+                <label for="bulk-categoria">Categoría global</label>
+                <select id="bulk-categoria" [(ngModel)]="bulkData.idCategoria" name="bulk-categoria">
+                  <option [ngValue]="null">—</option>
+                  @for (cat of categorias(); track cat.idCategoria) {
+                    <option [ngValue]="cat.idCategoria">{{ cat.nombre }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="bulk-prefijo">Prefijo de título</label>
+                <input id="bulk-prefijo" type="text" [(ngModel)]="bulkData.prefijoTitulo" name="bulk-prefijo" placeholder="Ej: Serie Invierno" />
+              </div>
+
+              <div class="form-group">
+                <label for="bulk-sufijo">Sufijo de título</label>
+                <input id="bulk-sufijo" type="text" [(ngModel)]="bulkData.sufijoTitulo" name="bulk-sufijo" placeholder="Ej: 2026" />
+              </div>
+
+              <div class="form-group">
+                <label for="bulk-descripcion">Descripción global</label>
+                <input id="bulk-descripcion" type="text" [(ngModel)]="bulkData.descripcion" name="bulk-descripcion" placeholder="Se aplica en lote" />
+              </div>
+
+              <div class="form-group">
+                <label for="bulk-comentario">Comentario global</label>
+                <input id="bulk-comentario" type="text" [(ngModel)]="bulkData.comentario" name="bulk-comentario" placeholder="Comentario interno" />
+              </div>
+            </div>
+
+            <div class="bulk-buttons">
+              <button type="button" class="btn-select" (click)="aplicarMasivoATodas()">Aplicar a todas</button>
+              <button type="button" class="btn-select" (click)="aplicarMasivoSoloVacias()">Aplicar solo vacías</button>
+            </div>
+          </div>
+
+          <div class="batch-table-wrapper">
+            <table class="batch-table">
+              <thead>
+                <tr>
+                  <th>Archivo</th>
+                  <th>Título</th>
+                  <th>Categoría</th>
+                  @if (modoLote() === 'detalle') {
+                    <th>Descripción</th>
+                    <th>Comentario</th>
+                  }
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of uploadQueue(); track item.id; let i = $index) {
+                  <tr>
+                    <td data-label="Archivo">{{ item.file.name }}</td>
+                    <td data-label="Título">
+                      <input
+                        type="text"
+                        [ngModel]="item.titulo"
+                        [name]="'titulo-' + item.id"
+                        (ngModelChange)="actualizarItem(i, { titulo: $event })"
+                      />
+                    </td>
+                    <td data-label="Categoría">
+                      <select
+                        [ngModel]="item.idCategoria"
+                        [name]="'categoria-' + item.id"
+                        (ngModelChange)="actualizarItem(i, { idCategoria: $event })"
+                      >
+                        <option [ngValue]="null">Seleccionar...</option>
+                        @for (cat of categorias(); track cat.idCategoria) {
+                          <option [ngValue]="cat.idCategoria">{{ cat.nombre }}</option>
+                        }
+                      </select>
+                    </td>
+                    @if (modoLote() === 'detalle') {
+                      <td data-label="Descripción">
+                        <input
+                          type="text"
+                          [ngModel]="item.descripcion"
+                          [name]="'descripcion-' + item.id"
+                          (ngModelChange)="actualizarItem(i, { descripcion: $event })"
+                        />
+                      </td>
+                      <td data-label="Comentario">
+                        <input
+                          type="text"
+                          [ngModel]="item.comentario"
+                          [name]="'comentario-' + item.id"
+                          (ngModelChange)="actualizarItem(i, { comentario: $event })"
+                        />
+                      </td>
+                    }
+                    <td data-label="Acción">
+                      <button type="button" class="btn-remove" (click)="eliminarItem(i)" [disabled]="uploading()">Quitar</button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+
+        <button type="button" class="btn-submit" [disabled]="uploading() || uploadQueue().length === 0" (click)="onUpload()">
+          {{ uploading() ? 'Subiendo lote...' : 'Subir lote' }}
+        </button>
       </div>
     }
 
     <!-- Mis Fotos -->
     <h2 class="section-title">Fotos Subidas</h2>
+    <p class="stats-line">Vistas acumuladas: {{ totalVistas() }}</p>
 
     @if (loading()) {
       <div class="photo-grid">
@@ -99,7 +246,7 @@
     } @else {
       <div class="photo-grid">
         @for (foto of fotos(); track foto.idFoto) {
-          <app-photo-card [foto]="foto" />
+          <app-photo-card [foto]="foto" [fitMode]="'contain'" [fromContext]="'dashboard'" />
         } @empty {
           <p class="empty">No subiste fotos todavía. ¡Empezá ahora!</p>
         }

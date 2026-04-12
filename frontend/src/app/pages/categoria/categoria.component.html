@@ -1,0 +1,75 @@
+<section class="page-shell categoria-page">
+  <div class="container">
+    @if (loading()) {
+      <div class="photo-grid">
+        @for (_ of [1, 2, 3, 4, 5, 6]; track _) {
+          <div class="card-skeleton">
+            <app-skeleton height="220px" />
+          </div>
+        }
+      </div>
+    } @else if (error()) {
+      <div class="card-surface empty-state">
+        <p>{{ error() }}</p>
+        <a class="btn" routerLink="/">Volver al inicio</a>
+      </div>
+    } @else {
+      <header class="categoria-header">
+        <h1 class="section-title">{{ categoriaTitulo() }}</h1>
+      </header>
+
+      <div class="mosaic-grid">
+        @for (foto of fotos(); track foto.idFoto; let i = $index) {
+          <button
+            type="button"
+            class="mosaic-item"
+            [class.wide]="i % 7 === 0"
+            [class.tall]="i % 5 === 0"
+            (click)="abrirLightbox(i)"
+            [attr.aria-label]="'Abrir foto ' + foto.titulo"
+          >
+            <img [src]="foto | fotoImagenUrl:'web'" [alt]="foto.titulo" loading="lazy" />
+          </button>
+        } @empty {
+          <div class="card-surface empty-state">
+            <p>No hay fotos aprobadas en esta categoría por ahora.</p>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</section>
+
+@if (lightboxOpen() && fotoActual()) {
+  <div
+    class="lightbox"
+    tabindex="0"
+    (click)="cerrarLightbox()"
+    (keydown.escape)="cerrarLightbox()"
+    (keydown.arrowleft)="irAnterior()"
+    (keydown.arrowright)="irSiguiente()"
+  >
+    <button class="lightbox-close" type="button" (click)="cerrarLightbox(); $event.stopPropagation()" aria-label="Cerrar">
+      ✕
+    </button>
+
+    <div class="lightbox-toolbar" (click)="$event.stopPropagation()">
+      <span>{{ categoriaTitulo() }}</span>
+      @if (contador()) {
+        <span>{{ contador() }}</span>
+      }
+    </div>
+
+    <button class="lightbox-nav left" type="button" [disabled]="!puedeIrAnterior()" (click)="irAnterior(); $event.stopPropagation()" aria-label="Foto anterior">
+      ‹
+    </button>
+
+    <div class="lightbox-stage" (click)="$event.stopPropagation()" (touchstart)="onTouchStart($event)" (touchend)="onTouchEnd($event)">
+      <img [src]="fotoActual() | fotoImagenUrl:'web'" [alt]="fotoActual()!.titulo" />
+    </div>
+
+    <button class="lightbox-nav right" type="button" [disabled]="!puedeIrSiguiente()" (click)="irSiguiente(); $event.stopPropagation()" aria-label="Foto siguiente">
+      ›
+    </button>
+  </div>
+}

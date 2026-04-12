@@ -6,7 +6,10 @@ import ar.com.gav.backend.fotografo.mapper.CategoriaMapper;
 import java.time.LocalDateTime;
 
 import javax.ejb.Stateless;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -15,6 +18,10 @@ import java.util.stream.Collectors;
 public class CategoriaService extends BaseService<Categoria> {
 
     private static final Logger LOG = Logger.getLogger(CategoriaService.class.getName());
+    private static final Set<String> RESERVED_SLUGS = new HashSet<>(Arrays.asList(
+            "about", "contacto", "contact", "login", "recuperar", "reset-password",
+            "dashboard", "admin", "usuarios", "unauthorized", "foto", "api", "auth"
+    ));
 
     public CategoriaService() {
         super(Categoria.class);
@@ -28,6 +35,8 @@ public class CategoriaService extends BaseService<Categoria> {
             if (entidad.getSlug() != null) {
                 entidad.setSlug(normalizarSlug(entidad.getSlug()));
             }
+            validarSlug(entidad.getSlug());
+            validarSlugDisponible(entidad.getSlug(), null);
             entidad.setFechaActualizacion(LocalDateTime.now());
             super.crear(entidad);
             dto.setIdCategoria(entidad.getIdCategoria());
@@ -48,7 +57,10 @@ public class CategoriaService extends BaseService<Categoria> {
 
             existing.setNombre(dto.getNombre());
             if (dto.getSlug() != null) {
-                existing.setSlug(normalizarSlug(dto.getSlug()));
+                String slugNormalizado = normalizarSlug(dto.getSlug());
+                validarSlug(slugNormalizado);
+                validarSlugDisponible(slugNormalizado, dto.getIdCategoria());
+                existing.setSlug(slugNormalizado);
             }
             if (dto.getIcono() != null) {
                 existing.setIcono(dto.getIcono());
@@ -87,6 +99,39 @@ public class CategoriaService extends BaseService<Categoria> {
                 .replaceAll("^-|-$", "");
     }
 
+    private void validarSlug(String slug) {
+        if (slug == null || slug.trim().isEmpty()) {
+            throw new RuntimeException("Slug inválido. No puede estar vacío");
+        }
+
+        if (esSlugReservado(slug)) {
+            throw new RuntimeException("Slug reservado para rutas del sistema");
+        }
+    }
+
+    private boolean esSlugReservado(String slug) {
+        return RESERVED_SLUGS.contains(slug);
+    }
+
+    private void validarSlugDisponible(String slug, Integer excluirId) {
+        Long total;
+
+        if (excluirId == null) {
+            total = em.createQuery("SELECT COUNT(c) FROM Categoria c WHERE c.slug = :slug", Long.class)
+                    .setParameter("slug", slug)
+                    .getSingleResult();
+        } else {
+            total = em.createQuery("SELECT COUNT(c) FROM Categoria c WHERE c.slug = :slug AND c.idCategoria <> :id", Long.class)
+                    .setParameter("slug", slug)
+                    .setParameter("id", excluirId)
+                    .getSingleResult();
+        }
+
+        if (total != null && total > 0) {
+            throw new RuntimeException("El slug ya está en uso");
+        }
+    }
+
     public void eliminar(Integer id) {
         LOG.info("=== ELIMINAR CATEGORIA === ID: " + id);
         try {
@@ -118,5 +163,19 @@ public class CategoriaService extends BaseService<Categoria> {
                 .getResultList();
         LOG.fine("Found " + categorias.size() + " active categories");
         return categorias;
+    }
+
+    /**
+     * Busca una categoría activa por slug (uso público).
+     */
+    public Categoria buscarActivaPorSlug(String slug) {
+        String slugNormalizado = normalizarSlug(slug);
+        List<Categoria> categorias = em.createQuery(
+                        "SELECT c FROM Categoria c WHERE c.slug = :slug AND c.activo = TRUE", Categoria.class)
+                .setParameter("slug", slugNormalizado)
+                .setMaxResults(1)
+                .getResultList();
+
+        return categorias.isEmpty() ? null : categorias.get(0);
     }
 }

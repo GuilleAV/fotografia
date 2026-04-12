@@ -8,8 +8,12 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent),
   },
   {
-    path: 'galeria',
-    loadComponent: () => import('./pages/galeria/galeria.component').then(m => m.GaleriaComponent),
+    path: 'about',
+    loadComponent: () => import('./pages/about/about.component').then(m => m.AboutComponent),
+  },
+  {
+    path: 'contacto',
+    loadComponent: () => import('./pages/contacto/contacto.component').then(m => m.ContactoComponent),
   },
   {
     path: 'login',
@@ -44,12 +48,26 @@ export const routes: Routes = [
     canActivate: [adminGuard],
   },
   {
+    path: 'admin/perfil-publico',
+    loadComponent: () => import('./pages/admin-perfil-publico/admin-perfil-publico.component').then(m => m.AdminPerfilPublicoComponent),
+    canActivate: [adminGuard],
+  },
+  {
     path: 'foto/:id',
     loadComponent: () => import('./pages/foto-detail/foto-detail.component').then(m => m.FotoDetailComponent),
   },
   {
     path: 'unauthorized',
     loadComponent: () => import('./pages/unauthorized/unauthorized.component').then(m => m.UnauthorizedComponent),
+  },
+  {
+    path: 'galeria',
+    redirectTo: '',
+    pathMatch: 'full',
+  },
+  {
+    path: ':slug',
+    loadComponent: () => import('./pages/categoria/categoria.component').then(m => m.CategoriaComponent),
   },
   {
     path: '**',

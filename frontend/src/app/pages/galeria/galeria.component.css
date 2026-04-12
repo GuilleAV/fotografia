@@ -4,7 +4,7 @@
 .page-title {
   text-align: center;
   font-size: 1.6rem;
-  color: #1a1a2e;
+  color: var(--color-text);
   margin-bottom: 1.5rem;
 }
 .filters {
@@ -16,31 +16,32 @@ select {
   width: 100%;
   max-width: 300px;
   padding: 0.85rem 1rem;
-  border: 2px solid #e0e0e0;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   font-size: 1rem;
-  background: #fff;
+  background: #0f1118;
+  color: var(--color-text);
   cursor: pointer;
 }
-select:focus { outline: none; border-color: #e94560; }
+select:focus { outline: none; border-color: var(--color-accent); }
 .photo-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1rem;
 }
 .card-skeleton {
-  background: #fff;
+  background: var(--color-surface);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border: 1px solid var(--color-border);
 }
 .error, .empty {
   text-align: center;
   padding: 2rem;
-  color: #666;
+  color: var(--color-muted);
   font-size: 1rem;
 }
-.error { color: #e74c3c; }
+.error { color: #fca5a5; }
 
 /* === TABLET (min-width: 600px) === */
 @media (min-width: 600px) {

@@ -8,6 +8,9 @@ export interface Usuario {
   rol: 'SUPER_ADMIN' | 'ADMIN' | 'FOTOGRAFO';
   activo: boolean;
   fotoPerfil?: string;
+  socialYoutube?: string;
+  socialInstagram?: string;
+  socialThreads?: string;
   cantidadFotos?: number;
   password?: string; // Para formularios de creación/edición
 }
@@ -30,6 +33,7 @@ export interface Foto {
   idFoto: number;
   titulo: string;
   descripcion?: string;
+  comentario?: string;
   nombreArchivo: string;
   rutaArchivo?: string;
   rutaThumbnail?: string;
@@ -82,6 +86,7 @@ export interface FileUploadResponse {
 export interface FotoUpdateRequest {
   titulo?: string;
   descripcion?: string;
+  comentario?: string;
   idCategoria?: number;
   destacada?: boolean;
   orden?: number | null; // 1-5 para carousel, null para quitar
@@ -95,4 +100,14 @@ export interface FotoEstadoRequest {
 
 export interface ErrorResponse {
   error: string;
+}
+
+export interface PerfilPublico {
+  nombreMarca: string;
+  nombreCompleto: string;
+  fotoPerfil?: string;
+  emailContacto?: string;
+  socialYoutube?: string;
+  socialInstagram?: string;
+  socialThreads?: string;
 }

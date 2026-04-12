@@ -1,11 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
+import { of } from 'rxjs';
 import { HomeComponent } from './home.component';
-import { PhotoCardComponent } from '../../shared/components/photo-card/photo-card.component';
-import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.component';
 import { FotoService } from '../../core/services/foto.service';
-import { CategoriaService } from '../../core/services/categoria.service';
+import { AuthService } from '../../core/services/auth.service';
 
 describe('HomeComponent', () => {
   let component: HomeComponent;
@@ -13,12 +11,29 @@ describe('HomeComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [HomeComponent, PhotoCardComponent, SkeletonComponent],
+      imports: [HomeComponent],
       providers: [
         provideRouter([]),
-        provideHttpClient(),
-        { provide: FotoService, useValue: { listarPublicas: () => ({ subscribe: () => {} }) } },
-        { provide: CategoriaService, useValue: { listarActivas: () => ({ subscribe: () => {} }) } },
+        {
+          provide: FotoService,
+          useValue: {
+            listarPublicas: () => of([
+              {
+                idFoto: 1,
+                titulo: 'Hero',
+                nombreArchivo: 'hero.jpg',
+                destacada: false,
+                activo: true,
+                estado: 'APROBADA',
+                visitas: 10,
+                fechaSubida: new Date().toISOString(),
+                idCategoria: 1,
+                rutaWeb: 'hero-web.jpg',
+              },
+            ]),
+          },
+        },
+        { provide: AuthService, useValue: { getToken: () => null } },
       ],
     }).compileComponents();
 
@@ -33,6 +48,6 @@ describe('HomeComponent', () => {
 
   it('should display hero section', () => {
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.hero')).toBeTruthy();
+    expect(compiled.querySelector('.hero-shell')).toBeTruthy();
   });
 });

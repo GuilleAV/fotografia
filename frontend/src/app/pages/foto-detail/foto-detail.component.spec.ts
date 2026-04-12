@@ -1,9 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
+import { convertToParamMap, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { FotoDetailComponent } from './foto-detail.component';
-import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.component';
 import { FotoService } from '../../core/services/foto.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ActivatedRoute } from '@angular/router';
@@ -14,13 +12,46 @@ describe('FotoDetailComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [FotoDetailComponent, SkeletonComponent],
+      imports: [FotoDetailComponent],
       providers: [
         provideRouter([]),
-        provideHttpClient(),
-        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '1' } } } },
-        { provide: FotoService, useValue: { obtenerPorId: () => of({ idFoto: 1, titulo: 'Test', estado: 'APROBADA', visitas: 0, fechaSubida: new Date().toISOString() }) } },
-        { provide: AuthService, useValue: { isAdmin: () => false } },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: of(convertToParamMap({ id: '1' })),
+            queryParamMap: of(convertToParamMap({})),
+          },
+        },
+        {
+          provide: FotoService,
+          useValue: {
+            obtenerPorId: () => of({
+              idFoto: 1,
+              titulo: 'Test',
+              estado: 'APROBADA',
+              visitas: 0,
+              fechaSubida: new Date().toISOString(),
+              categoriaSlug: 'naturaleza',
+              categoriaNombre: 'Naturaleza',
+              rutaWeb: 'foto-web.jpg',
+              rutaThumbnail: 'foto-thumb.jpg',
+            }),
+            listarPorCategoriaSlug: () => of([
+              {
+                idFoto: 1,
+                titulo: 'Test',
+                estado: 'APROBADA',
+                visitas: 0,
+                fechaSubida: new Date().toISOString(),
+                categoriaSlug: 'naturaleza',
+                categoriaNombre: 'Naturaleza',
+                rutaWeb: 'foto-web.jpg',
+                rutaThumbnail: 'foto-thumb.jpg',
+              },
+            ]),
+          },
+        },
+        { provide: AuthService, useValue: { getToken: () => null } },
       ],
     }).compileComponents();
 

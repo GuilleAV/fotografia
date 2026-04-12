@@ -16,6 +16,7 @@ public class FotoDTO implements Serializable {
     private Integer idFoto;
     private String titulo;
     private String descripcion;
+    private String comentario;
     private String nombreArchivo;
     private String urlCompleta;
     private Integer tamanioKb;
@@ -85,6 +86,14 @@ public class FotoDTO implements Serializable {
 
     public void setDescripcion(String descripcion) {
         this.descripcion = descripcion;
+    }
+
+    public String getComentario() {
+        return comentario;
+    }
+
+    public void setComentario(String comentario) {
+        this.comentario = comentario;
     }
 
     public String getNombreArchivo() {

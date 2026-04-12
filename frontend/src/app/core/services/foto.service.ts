@@ -31,19 +31,26 @@ export class FotoService {
     return this.http.get<Foto[]>(`${this.apiUrl}/categoria/${idCategoria}`);
   }
 
+  listarPorCategoriaSlug(slug: string): Observable<Foto[]> {
+    return this.http.get<Foto[]>(`${this.apiUrl}/categoria/slug/${encodeURIComponent(slug)}`);
+  }
+
   // ============ AUTENTICADOS ============
 
   listarMisFotos(): Observable<Foto[]> {
     return this.http.get<Foto[]>(`${this.apiUrl}/mis-fotos`);
   }
 
-  subirFoto(archivo: File, titulo: string, idCategoria: number, descripcion?: string): Observable<FileUploadResponse> {
+  subirFoto(archivo: File, titulo: string, idCategoria: number, descripcion?: string, comentario?: string): Observable<FileUploadResponse> {
     const formData = new FormData();
     formData.append('archivo', archivo, archivo.name);
     formData.append('titulo', titulo);
     formData.append('idCategoria', idCategoria.toString());
     if (descripcion) {
       formData.append('descripcion', descripcion);
+    }
+    if (comentario) {
+      formData.append('comentario', comentario);
     }
 
     return this.http.post<FileUploadResponse>(`${this.apiUrl}/upload`, formData);

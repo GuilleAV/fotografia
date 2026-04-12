@@ -1,40 +1,59 @@
 <header class="site-header">
-  <nav class="nav-container">
-    <a routerLink="/" class="logo" (click)="menuOpen = false">
-      <span class="logo-icon">📷</span>
-      <span class="logo-text">FotoPortfolio</span>
+  <div class="container nav-shell">
+    <a routerLink="/" class="brand" (click)="closeMenu()">
+      <img src="assets/brand/sentir-logo-placeholder.svg" alt="Logo Sentir Fotográfico" class="brand-logo" />
+      <span>
+        <span class="brand-name">{{ nombreMarca() }}</span>
+        <span class="brand-subtitle">{{ subtituloMarca() }}</span>
+      </span>
     </a>
 
-    <button class="menu-toggle" (click)="menuOpen = !menuOpen" aria-label="Menú">
+    <button class="menu-toggle" (click)="toggleMenu()" aria-label="Abrir menú">
       <span></span><span></span><span></span>
     </button>
 
-    <ul class="nav-links" [class.open]="menuOpen">
-      <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="menuOpen = false">Inicio</a></li>
-      <li><a routerLink="/galeria" routerLinkActive="active" (click)="menuOpen = false">Galería</a></li>
-
-      @if (auth.isLoggedIn()) {
-        <!-- Visible para TODOS los logueados (Admin y Fotógrafos) -->
-        <li><a routerLink="/dashboard" routerLinkActive="active" (click)="menuOpen = false">Subir Fotos</a></li>
-        
+    @if (isAdminContext()) {
+      <ul class="nav-links" [class.open]="menuOpen()">
+        <li><a routerLink="/" (click)="closeMenu()">Ver Sitio</a></li>
+        <li><a routerLink="/dashboard" routerLinkActive="active" (click)="closeMenu()">Dashboard</a></li>
         @if (auth.isAdmin()) {
-          <li><a routerLink="/admin" routerLinkActive="active" (click)="menuOpen = false">Gestión de Fotos</a></li>
-          <li><a routerLink="/admin/categorias" routerLinkActive="active" (click)="menuOpen = false">Categorías</a></li>
-          <li><a routerLink="/admin/usuarios" routerLinkActive="active" (click)="menuOpen = false">Usuarios</a></li>
+          <li><a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">Gestión</a></li>
+          <li><a routerLink="/admin/perfil-publico" routerLinkActive="active" (click)="closeMenu()">Perfil Público</a></li>
+          <li><a routerLink="/admin/categorias" routerLinkActive="active" (click)="closeMenu()">Categorías</a></li>
+          <li><a routerLink="/admin/usuarios" routerLinkActive="active" (click)="closeMenu()">Usuarios</a></li>
         }
-        <li class="user-menu">
-          <span class="user-name">{{ auth.user()?.nombreCompleto }}</span>
-          <button class="btn-logout" (click)="auth.logout()">
-            Salir
-          </button>
-        </li>
-      } @else {
-        <li><a routerLink="/login" routerLinkActive="active" class="btn-login" (click)="menuOpen = false">Iniciar Sesión</a></li>
-      }
-    </ul>
-  </nav>
+
+        @if (auth.isLoggedIn()) {
+          <li class="user-badge">{{ auth.user()?.nombreCompleto }}</li>
+          <li><button class="btn btn-ghost" (click)="logout()">Salir</button></li>
+        }
+      </ul>
+    } @else {
+      <ul class="nav-links" [class.open]="menuOpen()">
+        <li><a routerLink="/" [routerLinkActiveOptions]="{ exact: true }" routerLinkActive="active" (click)="closeMenu()">Inicio</a></li>
+
+        @for (categoria of categoriasOrdenadas(); track categoria.idCategoria) {
+          <li>
+            <a [routerLink]="['/', categoria.slug]" routerLinkActive="active" (click)="closeMenu()">
+              {{ categoria.nombre }}
+            </a>
+          </li>
+        }
+
+        <li><a routerLink="/about" routerLinkActive="active" (click)="closeMenu()">Nosotros</a></li>
+        <li><a routerLink="/contacto" routerLinkActive="active" (click)="closeMenu()">Contacto</a></li>
+
+        @if (auth.isLoggedIn()) {
+          <li><a [routerLink]="dashboardRoute()" (click)="closeMenu()">Panel</a></li>
+          <li><button class="btn btn-ghost" (click)="logout()">Salir</button></li>
+        } @else {
+          <li><a routerLink="/login" class="btn btn-accent" (click)="closeMenu()">Iniciar sesión</a></li>
+        }
+      </ul>
+    }
+  </div>
 </header>
 
-@if (menuOpen) {
-  <div class="overlay" (click)="menuOpen = false"></div>
+@if (menuOpen()) {
+  <button class="overlay" (click)="closeMenu()" aria-label="Cerrar menú"></button>
 }

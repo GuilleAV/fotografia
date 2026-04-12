@@ -4,7 +4,7 @@
 
     <!-- Mensaje de feedback -->
     @if (message()) {
-      <div class="alert-success">{{ message() }}</div>
+      <div [class]="messageType() === 'error' ? 'alert-error' : 'alert-success'">{{ message() }}</div>
     }
 
     <!-- Tabs -->
@@ -28,9 +28,9 @@
       <div class="moderation-queue">
         @for (foto of pendientes(); track foto.idFoto) {
           <div class="moderation-card">
-            <div class="moderation-preview">
+            <button class="moderation-preview" (click)="abrirPreview(foto)" type="button" aria-label="Ver foto">
               <img [src]="foto | fotoImagenUrl:'web'" [alt]="foto.titulo" />
-            </div>
+            </button>
             <div class="moderation-info">
               <h3>{{ foto.titulo }}</h3>
               @if (foto.descripcion) {
@@ -38,7 +38,7 @@
               }
               <div class="meta">
                 <span>📷 {{ foto.usuarioNombre || 'Desconocido' }}</span>
-                <span>📅 {{ foto.fechaSubida | date:'short' }}</span>
+                <span>📅 {{ foto.fechaSubida | date:'dd/MM/yyyy' }}</span>
                 <span>📂 {{ foto.categoriaNombre }}</span>
               </div>
               <div class="actions">
@@ -66,8 +66,6 @@
               <th>Foto</th>
               <th>Título</th>
               <th>Estado</th>
-              <th>Destacada</th>
-              <th>Carousel</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -75,7 +73,9 @@
             @for (foto of todas(); track foto.idFoto) {
               <tr>
                 <td>
-                  <img class="table-thumb" [src]="foto | fotoImagenUrl:'thumb'" [alt]="foto.titulo" />
+                  <button class="thumb-btn" type="button" (click)="abrirPreview(foto)" aria-label="Ver foto">
+                    <img class="table-thumb" [src]="foto | fotoImagenUrl:'thumb'" [alt]="foto.titulo" />
+                  </button>
                 </td>
                 <td>
                   <div class="foto-titulo">{{ foto.titulo }}</div>
@@ -85,30 +85,6 @@
                   <span class="status-badge" [class]="'status-' + foto.estado.toLowerCase()">
                     {{ foto.estado }}
                   </span>
-                </td>
-                <td>
-                  <button 
-                    class="btn-toggle" 
-                    [class.active]="foto.destacada"
-                    [disabled]="foto.estado !== 'APROBADA'"
-                    (click)="toggleDestacada(foto)"
-                    title="Marcar como destacada"
-                  >
-                    {{ foto.destacada ? '⭐' : '☆' }}
-                  </button>
-                </td>
-                <td>
-                  <select 
-                    class="orden-select"
-                    [value]="foto.orden || ''"
-                    [disabled]="foto.estado !== 'APROBADA'"
-                    (change)="setOrden(foto, ($any($event.target).value ? +$any($event.target).value : null))"
-                  >
-                    <option value="">—</option>
-                    @for (n of [1,2,3,4,5]; track n) {
-                      <option [value]="n">{{ n }}</option>
-                    }
-                  </select>
                 </td>
                 <td>
                   @if (foto.estado === 'PENDIENTE') {
@@ -128,3 +104,15 @@
     }
   </div>
 </section>
+
+@if (fotoPreview()) {
+  <div class="preview-overlay" (click)="cerrarPreview()">
+    <button class="preview-close" type="button" (click)="cerrarPreview(); $event.stopPropagation()" aria-label="Cerrar">
+      ✕
+    </button>
+    <div class="preview-stage" (click)="$event.stopPropagation()">
+      <img [src]="fotoPreview() | fotoImagenUrl:'web'" [alt]="fotoPreview()!.titulo" />
+      <p>{{ fotoPreview()!.titulo }}</p>
+    </div>
+  </div>
+}

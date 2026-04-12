@@ -1,100 +1,73 @@
-<!-- Hero Carousel -->
-<section class="hero-carousel">
-  @if (carouselSlides().length > 0) {
-    <div class="carousel-container">
-      @for (slide of carouselSlides(); track slide.idFoto; let i = $index) {
-        <div
-          class="carousel-slide"
-          [class.active]="i === currentSlide()"
-        >
-          <img
-            [src]="slide | fotoImagenUrl:'web'"
-            [alt]="slide.titulo"
-            loading="eager"
-          />
-          <div class="carousel-overlay"></div>
-        </div>
+@if (loading()) {
+  <section class="page-shell">
+    <div class="container loading-grid">
+      @for (_ of [1, 2, 3, 4, 5, 6, 7, 8]; track _) {
+        <app-skeleton height="220px" />
       }
-
-      <!-- Navigation arrows -->
-      <button class="carousel-arrow carousel-arrow--prev" (click)="prevSlide()" aria-label="Anterior">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="15 18 9 12 15 6"></polyline>
-        </svg>
+    </div>
+  </section>
+} @else if (error()) {
+  <section class="page-shell">
+    <div class="container card-surface home-empty">
+      <p>{{ error() }}</p>
+    </div>
+  </section>
+} @else {
+  <section class="hero-shell">
+    @if (heroFoto()) {
+      <button type="button" class="hero-link" (click)="abrirLightbox(0)" aria-label="Abrir fotografía destacada">
+        <img [src]="heroFoto() | fotoImagenUrl:'web'" [alt]="heroFoto()!.titulo" />
       </button>
-      <button class="carousel-arrow carousel-arrow--next" (click)="nextSlide()" aria-label="Siguiente">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="9 18 15 12 9 6"></polyline>
-        </svg>
-      </button>
-
-      <!-- Dots -->
-      <div class="carousel-dots">
-        @for (slide of carouselSlides(); track slide.idFoto; let i = $index) {
-          <button
-            class="carousel-dot"
-            [class.active]="i === currentSlide()"
-            (click)="goToSlide(i)"
-            [attr.aria-label]="'Ir a slide ' + (i + 1)"
-          ></button>
-        }
-      </div>
-
-      <!-- Hero content overlay -->
-      <div class="hero-content">
-        <h1>Descubrí el mundo a través de nuestros lentes</h1>
-        <p>Fotógrafos profesionales capturando momentos únicos</p>
-        <a routerLink="/galeria" class="btn-primary">Explorar Galería</a>
-      </div>
-    </div>
-  } @else {
-    <!-- Fallback sin fotos -->
-    <div class="hero-static">
-      <div class="hero-content">
-        <h1>Descubrí el mundo a través de nuestros lentes</h1>
-        <p>Fotógrafos profesionales capturando momentos únicos</p>
-        <a routerLink="/galeria" class="btn-primary">Explorar Galería</a>
-      </div>
-    </div>
-  }
-</section>
-
-<!-- Featured Photos -->
-<section class="section">
-  <div class="container">
-    <div class="section-header">
-      <h2 class="section-title">Fotos Destacadas</h2>
-      <a routerLink="/galeria" class="section-link">Ver todas →</a>
-    </div>
-
-    @if (fotosDestacadas().length > 0) {
-      <div class="photo-grid">
-        @for (foto of fotosDestacadas(); track foto.idFoto) {
-          <app-photo-card [foto]="foto" />
-        }
-      </div>
-    } @else {
-      <p class="empty">No hay fotos destacadas aún.</p>
     }
-  </div>
-</section>
+  </section>
 
-<!-- Categories -->
-<section class="section section-alt">
-  <div class="container">
-    <h2 class="section-title">Categorías</h2>
-    <div class="categories-grid">
-      @for (cat of categorias(); track cat.idCategoria) {
-        <a [routerLink]="['/galeria']" [queryParams]="{ categoria: cat.idCategoria }" class="category-card">
-          <div class="category-icon-wrapper" [style.background]="cat.color || '#667eea'">
-            <i class="{{ cat.icono || 'fa-solid fa-camera' }}"></i>
-          </div>
-          <h3>{{ cat.nombre }}</h3>
-          @if (cat.descripcion) {
-            <p>{{ cat.descripcion }}</p>
-          }
-        </a>
-      }
+  <section class="home-mosaic page-shell">
+    <div class="container">
+      <div class="mosaic-grid">
+        @for (foto of fotosMosaico(); track foto.idFoto; let i = $index) {
+          <button
+            type="button"
+            class="mosaic-item"
+            [class.wide]="i % 7 === 0"
+            [class.tall]="i % 5 === 0"
+            (click)="abrirLightbox(i + 1)"
+            [attr.aria-label]="'Abrir foto ' + foto.titulo"
+          >
+            <img [src]="foto | fotoImagenUrl:'web'" [alt]="foto.titulo" loading="lazy" />
+          </button>
+        }
+      </div>
     </div>
+  </section>
+}
+
+@if (lightboxOpen() && fotoActual()) {
+  <div
+    class="home-lightbox"
+    tabindex="0"
+    (click)="cerrarLightbox()"
+    (keydown.escape)="cerrarLightbox()"
+    (keydown.arrowleft)="irAnterior()"
+    (keydown.arrowright)="irSiguiente()"
+  >
+    <button class="lightbox-close" type="button" (click)="cerrarLightbox(); $event.stopPropagation()" aria-label="Cerrar">
+      ✕
+    </button>
+
+    @if (contador()) {
+      <div class="lightbox-counter" (click)="$event.stopPropagation()">{{ contador() }}</div>
+    }
+
+    <button class="lightbox-nav left" type="button" [disabled]="!puedeIrAnterior()" (click)="irAnterior(); $event.stopPropagation()" aria-label="Foto anterior">
+      ‹
+    </button>
+
+    <div class="lightbox-stage" (click)="$event.stopPropagation()" (touchstart)="onTouchStart($event)" (touchend)="onTouchEnd($event)">
+      <img [src]="fotoActual() | fotoImagenUrl:'web'" [alt]="fotoActual()!.titulo" />
+    </div>
+
+    <button class="lightbox-nav right" type="button" [disabled]="!puedeIrSiguiente()" (click)="irSiguiente(); $event.stopPropagation()" aria-label="Foto siguiente">
+      ›
+    </button>
   </div>
-</section>
+}

@@ -25,6 +25,9 @@ public class Foto implements Serializable {
     @Column(name = "descripcion", columnDefinition = "TEXT")
     private String descripcion;
 
+    @Column(name = "comentario", columnDefinition = "TEXT")
+    private String comentario;
+
     @Column(name = "nombre_archivo", nullable = false, length = 255)
     private String nombreArchivo;
 
@@ -124,6 +127,14 @@ public class Foto implements Serializable {
 
     public void setDescripcion(String descripcion) {
         this.descripcion = descripcion;
+    }
+
+    public String getComentario() {
+        return comentario;
+    }
+
+    public void setComentario(String comentario) {
+        this.comentario = comentario;
     }
 
     public String getNombreArchivo() {

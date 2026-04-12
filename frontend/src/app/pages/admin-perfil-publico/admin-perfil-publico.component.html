@@ -1,0 +1,58 @@
+<section class="admin-section">
+  <div class="container">
+    <h1>Perfil Público del Sitio</h1>
+
+    @if (loading()) {
+      <p class="state-message">Cargando perfil...</p>
+    } @else {
+      <div class="card">
+        @if (error()) {
+          <div class="alert-error">{{ error() }}</div>
+        }
+        @if (success()) {
+          <div class="alert-success">{{ success() }}</div>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="guardar()">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nombre de marca</label>
+              <input type="text" formControlName="nombreMarca" placeholder="Ej: Juan Pérez Photography" />
+            </div>
+
+            <div class="form-group">
+              <label>Email de contacto</label>
+              <input type="email" formControlName="emailContacto" placeholder="contacto@tuportfolio.com" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>URL foto de perfil</label>
+            <input type="url" formControlName="fotoPerfil" placeholder="https://..." />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Instagram</label>
+              <input type="url" formControlName="socialInstagram" placeholder="https://instagram.com/..." />
+            </div>
+
+            <div class="form-group">
+              <label>YouTube</label>
+              <input type="url" formControlName="socialYoutube" placeholder="https://youtube.com/..." />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Threads</label>
+            <input type="url" formControlName="socialThreads" placeholder="https://threads.net/..." />
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">Guardar perfil público</button>
+          </div>
+        </form>
+      </div>
+    }
+  </div>
+</section>

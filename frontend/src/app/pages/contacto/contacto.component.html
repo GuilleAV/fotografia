@@ -1,0 +1,22 @@
+<section class="page-shell">
+  <div class="container card-surface contacto-layout">
+    <div>
+      <p class="kicker">CONTACTO</p>
+      <h1 class="section-title">Trabajemos juntos</h1>
+      <p class="muted">Disponible para sesiones, campañas comerciales y contenido editorial.</p>
+    </div>
+
+    <div class="contacto-grid">
+      <a [href]="'mailto:' + emailContacto()">{{ emailContacto() }}</a>
+      @if (perfilPublico()?.socialInstagram) {
+        <a [href]="perfilPublico()!.socialInstagram" target="_blank" rel="noopener noreferrer">Instagram</a>
+      }
+      @if (perfilPublico()?.socialYoutube) {
+        <a [href]="perfilPublico()!.socialYoutube" target="_blank" rel="noopener noreferrer">YouTube</a>
+      }
+      @if (perfilPublico()?.socialThreads) {
+        <a [href]="perfilPublico()!.socialThreads" target="_blank" rel="noopener noreferrer">Threads</a>
+      }
+    </div>
+  </div>
+</section>

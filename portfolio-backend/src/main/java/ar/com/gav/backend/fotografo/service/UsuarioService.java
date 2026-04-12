@@ -1,6 +1,7 @@
 package ar.com.gav.backend.fotografo.service;
 
 
+import ar.com.gav.backend.fotografo.dto.PerfilPublicoDTO;
 import ar.com.gav.backend.fotografo.dto.UsuarioCreateDTO;
 import ar.com.gav.backend.fotografo.dto.UsuarioDTO;
 import ar.com.gav.backend.fotografo.entity.Usuario;
@@ -71,6 +72,15 @@ public class UsuarioService extends BaseService<Usuario> {
             if (dto.getFotoPerfil() != null) {
                 existing.setFotoPerfil(dto.getFotoPerfil());
             }
+            if (dto.getSocialYoutube() != null) {
+                existing.setSocialYoutube(dto.getSocialYoutube());
+            }
+            if (dto.getSocialInstagram() != null) {
+                existing.setSocialInstagram(dto.getSocialInstagram());
+            }
+            if (dto.getSocialThreads() != null) {
+                existing.setSocialThreads(dto.getSocialThreads());
+            }
             // NO tocamos password — se maneja por separado
 
             Usuario actualizado = em.merge(existing);
@@ -132,5 +142,110 @@ public class UsuarioService extends BaseService<Usuario> {
             LOG.warning("User NOT FOUND: " + username);
             return null;
         }
+    }
+
+    /**
+     * Perfil público principal del sitio (fotógrafo activo).
+     */
+    public PerfilPublicoDTO obtenerPerfilPublicoPrincipal() {
+        Usuario usuario = buscarFotografoPrincipal();
+        if (usuario == null) {
+            return null;
+        }
+
+        PerfilPublicoDTO perfil = new PerfilPublicoDTO();
+        String nombreCompleto = (usuario.getNombre() + " " + usuario.getApellido()).trim();
+
+        perfil.setNombreCompleto(nombreCompleto);
+        perfil.setNombreMarca(nombreCompleto);
+        perfil.setFotoPerfil(usuario.getFotoPerfil());
+        perfil.setEmailContacto(usuario.getEmail());
+        perfil.setSocialYoutube(normalizarRedSocial(usuario.getSocialYoutube()));
+        perfil.setSocialInstagram(normalizarRedSocial(usuario.getSocialInstagram()));
+        perfil.setSocialThreads(normalizarRedSocial(usuario.getSocialThreads()));
+
+        return perfil;
+    }
+
+    /**
+     * Actualiza el perfil público principal (fotógrafo activo prioritario).
+     */
+    public PerfilPublicoDTO actualizarPerfilPublicoPrincipal(PerfilPublicoDTO dto) {
+        Usuario usuario = buscarFotografoPrincipal();
+        if (usuario == null) {
+            throw new RuntimeException("No hay fotógrafo público configurado");
+        }
+
+        String nombreVisible = valorNoVacio(dto.getNombreMarca()) != null
+                ? valorNoVacio(dto.getNombreMarca())
+                : valorNoVacio(dto.getNombreCompleto());
+
+        if (nombreVisible != null) {
+            String[] partes = nombreVisible.trim().split("\\s+", 2);
+            usuario.setNombre(partes[0]);
+            usuario.setApellido(partes.length > 1 ? partes[1] : "");
+        }
+
+        String emailContacto = valorNoVacio(dto.getEmailContacto());
+        if (emailContacto != null) {
+            usuario.setEmail(emailContacto);
+        }
+
+        if (dto.getFotoPerfil() != null) {
+            usuario.setFotoPerfil(valorNoVacio(dto.getFotoPerfil()));
+        }
+
+        if (dto.getSocialYoutube() != null) {
+            usuario.setSocialYoutube(valorNoVacio(dto.getSocialYoutube()));
+        }
+
+        if (dto.getSocialInstagram() != null) {
+            usuario.setSocialInstagram(valorNoVacio(dto.getSocialInstagram()));
+        }
+
+        if (dto.getSocialThreads() != null) {
+            usuario.setSocialThreads(valorNoVacio(dto.getSocialThreads()));
+        }
+
+        em.merge(usuario);
+        em.flush();
+
+        return obtenerPerfilPublicoPrincipal();
+    }
+
+    private Usuario buscarFotografoPrincipal() {
+        List<Usuario> fotografos = em.createQuery(
+                        "SELECT u FROM Usuario u WHERE u.activo = TRUE AND u.rol = 'FOTOGRAFO' ORDER BY u.id ASC",
+                        Usuario.class)
+                .setMaxResults(1)
+                .getResultList();
+
+        if (!fotografos.isEmpty()) {
+            return fotografos.get(0);
+        }
+
+        List<Usuario> fallbackAdmin = em.createQuery(
+                        "SELECT u FROM Usuario u WHERE u.activo = TRUE AND (u.rol = 'ADMIN' OR u.rol = 'SUPER_ADMIN') ORDER BY u.id ASC",
+                        Usuario.class)
+                .setMaxResults(1)
+                .getResultList();
+
+        return fallbackAdmin.isEmpty() ? null : fallbackAdmin.get(0);
+    }
+
+    private String normalizarRedSocial(String valor) {
+        if (valor == null) {
+            return null;
+        }
+        String trimmed = valor.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private String valorNoVacio(String valor) {
+        if (valor == null) {
+            return null;
+        }
+        String trimmed = valor.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

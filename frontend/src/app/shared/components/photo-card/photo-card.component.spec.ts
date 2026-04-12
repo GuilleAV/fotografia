@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { PhotoCardComponent } from './photo-card.component';
 import { Foto } from '../../../core/models';
+import { AuthService } from '../../../core/services/auth.service';
 
 describe('PhotoCardComponent', () => {
   let component: PhotoCardComponent;
@@ -23,12 +24,15 @@ describe('PhotoCardComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [PhotoCardComponent],
-      providers: [provideRouter([])],
+      providers: [
+        provideRouter([]),
+        { provide: AuthService, useValue: { getToken: () => null } },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(PhotoCardComponent);
     component = fixture.componentInstance;
-    component.foto.set(mockFoto);
+    fixture.componentRef.setInput('foto', mockFoto);
     fixture.detectChanges();
   });
 
