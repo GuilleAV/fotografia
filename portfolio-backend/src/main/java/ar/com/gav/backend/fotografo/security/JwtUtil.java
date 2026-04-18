@@ -1,5 +1,6 @@
 package ar.com.gav.backend.fotografo.security;
 
+import ar.com.gav.backend.fotografo.config.AppConfig;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -15,10 +16,17 @@ public class JwtUtil {
 
     private static final Logger LOG = Logger.getLogger(JwtUtil.class.getName());
 
-    // Clave secreta, idealmente sacada de la tabla configuracion
-    private static final String SECRET_KEY = "PortfolioFotografo2024SecretKeyJWTBackendJavaEE8GlassFish5MySQLAngularSeguridadMaximaProduccion";
+    private static final String INSECURE_DEFAULT_SECRET = "CHANGE_ME_IN_PRODUCTION_WITH_A_LONG_RANDOM_SECRET";
 
-    private static final long EXPIRACION_MS = 1000 * 60 * 60 * 24; // 24 horas
+    private static final String SECRET_KEY = AppConfig.getJwtSecret();
+
+    private static final long EXPIRACION_MS = AppConfig.getJwtExpirationMs();
+
+    static {
+        if (INSECURE_DEFAULT_SECRET.equals(SECRET_KEY)) {
+            LOG.severe("JWT usa secret por defecto. Configurá APP_JWT_SECRET antes de producción.");
+        }
+    }
 
     public static String generarToken(String username) {
         LOG.info("=== JWT GENERAR TOKEN === User: " + username);

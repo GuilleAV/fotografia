@@ -1,0 +1,10 @@
+# Copiá este archivo como email.local.properties (NO versionar)
+
+mail.smtp.host=smtp.gmail.com
+mail.smtp.port=587
+mail.smtp.auth=true
+mail.smtp.ssl.enable=false
+mail.smtp.starttls.enable=true
+mail.smtp.ssl.trust=smtp.gmail.com
+mail.user=tu-cuenta@gmail.com
+mail.password=tu-app-password

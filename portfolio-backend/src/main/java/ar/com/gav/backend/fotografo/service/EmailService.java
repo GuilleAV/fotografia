@@ -1,5 +1,7 @@
 package ar.com.gav.backend.fotografo.service;
 
+import ar.com.gav.backend.fotografo.config.AppConfig;
+
 import javax.annotation.PostConstruct;
 import javax.ejb.Stateless;
 import javax.mail.*;
@@ -8,6 +10,8 @@ import javax.mail.internet.MimeMessage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Servicio para envío de correos electrónicos usando Gmail SMTP.
@@ -15,45 +19,67 @@ import java.util.Properties;
 @Stateless
 public class EmailService {
 
+    private static final Logger LOG = Logger.getLogger(EmailService.class.getName());
+
     private Properties mailProperties;
     private String mailUser;
     private String mailPassword;
 
     @PostConstruct
     public void init() {
-        try {
-            InputStream input = getClass().getClassLoader().getResourceAsStream("email.properties");
+        Properties props = new Properties();
+
+        // Base versionada (sin secretos)
+        loadInto(props, "email.properties");
+
+        // Override local opcional (ignorado por git)
+        loadInto(props, "email.local.properties");
+
+        // Prioridad final: variables APP_* (entorno)
+        mailUser = AppConfig.get("APP_SMTP_USER", props.getProperty("mail.user"));
+        mailPassword = AppConfig.get("APP_SMTP_PASSWORD", props.getProperty("mail.password"));
+
+        mailProperties = new Properties();
+        mailProperties.put("mail.smtp.host", AppConfig.get("APP_SMTP_HOST", props.getProperty("mail.smtp.host", "smtp.gmail.com")));
+        mailProperties.put("mail.smtp.port", AppConfig.get("APP_SMTP_PORT", props.getProperty("mail.smtp.port", "587")));
+        mailProperties.put("mail.smtp.auth", AppConfig.get("APP_SMTP_AUTH", props.getProperty("mail.smtp.auth", "true")));
+        mailProperties.put("mail.smtp.ssl.enable", AppConfig.get("APP_SMTP_SSL_ENABLE", props.getProperty("mail.smtp.ssl.enable", "false")));
+        mailProperties.put("mail.smtp.starttls.enable", AppConfig.get("APP_SMTP_STARTTLS_ENABLE", props.getProperty("mail.smtp.starttls.enable", "true")));
+        mailProperties.put("mail.smtp.ssl.trust", AppConfig.get("APP_SMTP_SSL_TRUST", props.getProperty("mail.smtp.ssl.trust", "smtp.gmail.com")));
+
+        if (mailUser == null || mailPassword == null) {
+            LOG.warning("EmailService no configurado: faltan APP_SMTP_USER / APP_SMTP_PASSWORD (o email.local.properties)");
+        }
+    }
+
+    private void loadInto(Properties target, String resourceName) {
+        try (InputStream input = getClass().getClassLoader().getResourceAsStream(resourceName)) {
             if (input == null) {
-                System.err.println("No se encontró email.properties");
                 return;
             }
-
-            Properties props = new Properties();
-            props.load(input);
-
-            mailUser = props.getProperty("mail.user");
-            mailPassword = props.getProperty("mail.password");
-
-            mailProperties = new Properties();
-            mailProperties.put("mail.smtp.host", props.getProperty("mail.smtp.host"));
-            mailProperties.put("mail.smtp.port", props.getProperty("mail.smtp.port"));
-            mailProperties.put("mail.smtp.auth", props.getProperty("mail.smtp.auth"));
-            mailProperties.put("mail.smtp.ssl.enable", props.getProperty("mail.smtp.ssl.enable", "true"));
-            mailProperties.put("mail.smtp.starttls.enable", props.getProperty("mail.smtp.starttls.enable", "false"));
-            mailProperties.put("mail.smtp.ssl.trust", props.getProperty("mail.smtp.ssl.trust", "smtp.gmail.com"));
-
-            input.close();
+            Properties loaded = new Properties();
+            loaded.load(input);
+            target.putAll(loaded);
         } catch (IOException e) {
-            System.err.println("Error al cargar email.properties: " + e.getMessage());
+            LOG.log(Level.WARNING, "Error al cargar " + resourceName, e);
         }
+    }
+
+    private boolean isConfigured() {
+        return mailUser != null && mailPassword != null;
+    }
+
+    private String buildResetUrl(String token) {
+        String frontendBaseUrl = AppConfig.getFrontendBaseUrl();
+        return frontendBaseUrl + "/reset-password?token=" + token;
     }
 
     /**
      * Envía un email de recuperación de contraseña.
      */
     public void enviarRecuperacionPassword(String emailDestino, String token) {
-        if (mailUser == null || mailPassword == null) {
-            System.err.println("EmailService no configurado correctamente");
+        if (!isConfigured()) {
+            LOG.warning("EmailService no configurado correctamente");
             return;
         }
 
@@ -61,7 +87,7 @@ public class EmailService {
         String cuerpo = "Hola,\n\n"
                 + "Recibimos una solicitud para restablecer tu contraseña.\n\n"
                 + "Hacé click en el siguiente enlace para crear una nueva contraseña:\n"
-                + "http://localhost:4200/reset-password?token=" + token + "\n\n"
+                + buildResetUrl(token) + "\n\n"
                 + "Este enlace expira en 1 hora.\n\n"
                 + "Si no solicitaste este cambio, podés ignorar este mensaje.\n\n"
                 + "Saludos,\n"
@@ -74,8 +100,8 @@ public class EmailService {
      * Envía un email genérico.
      */
     public void enviarEmail(String destino, String asunto, String cuerpo) {
-        if (mailUser == null || mailPassword == null) {
-            System.err.println("EmailService no configurado correctamente");
+        if (!isConfigured()) {
+            LOG.warning("EmailService no configurado correctamente");
             return;
         }
 
@@ -94,11 +120,10 @@ public class EmailService {
             message.setText(cuerpo);
 
             Transport.send(message);
-            System.out.println("Email enviado correctamente a: " + destino);
+            LOG.info("Email enviado correctamente a: " + destino);
 
         } catch (MessagingException e) {
-            System.err.println("Error al enviar email a " + destino + ": " + e.getMessage());
-            e.printStackTrace();
+            LOG.log(Level.SEVERE, "Error al enviar email a " + destino, e);
         }
     }
 }

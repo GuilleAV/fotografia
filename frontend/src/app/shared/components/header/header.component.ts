@@ -57,11 +57,7 @@ export class HeaderComponent {
     [...this.categorias()].sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0))
   );
 
-  nombreMarca = computed(() => 'SENTIR FOTOGRÁFICO');
-
-  subtituloMarca = computed(() => {
-    return 'Colectivo de fotógrafos';
-  });
+  nombreMarca = computed(() => 'SENTIR FOTOGRAFICO');
 
   toggleMenu() {
     this.menuOpen.update((isOpen) => !isOpen);

@@ -1,6 +1,7 @@
 package ar.com.gav.backend.fotografo.service;
 
 
+import ar.com.gav.backend.fotografo.config.AppConfig;
 import ar.com.gav.backend.fotografo.dao.FotoDAO;
 import ar.com.gav.backend.fotografo.dto.FileUploadResponseDTO;
 import ar.com.gav.backend.fotografo.dto.FotoDTO;
@@ -32,7 +33,7 @@ public class FotoService extends BaseService<Foto> {
     private UsuarioService usuarioService;
 
     // Directorio base para almacenamiento de fotos (configurable)
-    private static final String UPLOAD_DIR = System.getProperty("user.home") + File.separator + "portfolio-uploads";
+    private static final String UPLOAD_DIR = AppConfig.getUploadDir();
 
     /**
      * Retorna el directorio base de uploads.
@@ -225,7 +226,7 @@ public class FotoService extends BaseService<Foto> {
         LOG.info("Photo SAVED to DB - ID: " + foto.getIdFoto());
 
         // Generar URL completa con el ID ya disponible
-        String baseUrl = "http://localhost:8080/portfolio-backend/api";
+        String baseUrl = AppConfig.getPublicApiBaseUrl();
         foto.setUrlCompleta(baseUrl + "/fotos/" + foto.getIdFoto());
         em.merge(foto);
 

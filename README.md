@@ -25,6 +25,8 @@ fotografia/
 
 ## 🚀 Inicio Rápido
 
+> Para configuración completa **local + producción (DonWeb + NIC.ar + Nginx + GlassFish + MySQL)**, ver [`DEPLOYMENT.md`](./DEPLOYMENT.md).
+
 ### 1. Base de datos
 
 ```bash
@@ -115,13 +117,13 @@ Abrir `http://localhost:4200`
 ## 📸 Flujo de Upload
 
 ```
-Fotógrafo sube foto (alta calidad, máx 10MB)
+Fotógrafo sube foto (alta calidad, máx 30MB)
         │
         ▼
 ImageProcessor genera 3 versiones:
-  ├── _original.jpg  → Alta calidad (almacenada)
-  ├── _thumb.jpg     → 800px max, calidad 80%
-  └── _web.jpg       → 1920px max, calidad 85%
+  ├── _original.{ext}  → Alta calidad (almacenada)
+  ├── _thumb.webp      → 800px max, calidad 80% (fallback .jpg)
+  └── _web.webp        → 1920px max, calidad 85% (fallback .jpg)
         │
         ▼
 Se guarda en BD con estado: PENDIENTE
@@ -130,16 +132,18 @@ Se guarda en BD con estado: PENDIENTE
 Admin revisa → APROBADA o RECHAZADA
         │
         ▼
-Público solo ve fotos APROBADAS (usa _web.jpg)
+Público solo ve fotos APROBADAS (usa _web.webp o fallback .jpg)
 ```
 
 ### Formatos soportados
 - JPG, JPEG, PNG, WebP
-- Tamaño máximo: 10MB
+- Tamaño máximo: 30MB (límite de API)
 
 ### Almacenamiento
-- Directorio: `~/portfolio-uploads/{username}/`
+- Directorio: `APP_UPLOAD_DIR/{username}/`
+- Si `APP_UPLOAD_DIR` no está definido: `user.home/portfolio-uploads/{username}/`
 - Cada foto genera 3 archivos en disco
+- La tabla `fotos` guarda **metadata y nombres de archivo** (no BLOB)
 
 ---
 
@@ -225,11 +229,17 @@ jdbc:mysql://localhost:3306/portfolio_fotografo
 user: root / password: root
 ```
 
-### Frontend (environment.ts)
+### Frontend (environments)
 
 ```ts
+// development (environment.ts)
 apiUrl: 'http://localhost:8080/portfolio-backend/api'
+
+// production (environment.prod.ts)
+apiUrl: '/api'
 ```
+
+> El build de producción usa `fileReplacements` en `frontend/angular.json` para reemplazar `environment.ts` por `environment.prod.ts`.
 
 ### Docker Compose
 
@@ -282,6 +292,38 @@ VALUES ('fotografo1', '$2a$10$...', 'foto@test.com', 'Juan', 'Pérez', 'FOTOGRAF
 ```
 
 > **Nota**: Generar el hash bcrypt con una herramienta online o desde el backend.
+
+---
+
+## 🛠️ Troubleshooting (producción)
+
+### 1) `/api/*` devuelve `index.html` en vez de JSON
+
+Falta (o está mal) el proxy de Nginx. Debe existir un bloque como:
+
+```nginx
+location ^~ /api/ {
+    proxy_pass http://127.0.0.1:8080/<context-root>/api/;
+}
+```
+
+> Verificá el context root real en Payara:
+
+```bash
+asadmin get applications.application.portfolio-backend.context-root
+```
+
+### 2) Login falla con `Illegal base64 character: '_'`
+
+`APP_JWT_SECRET` inválido para la librería JWT actual. Configurar uno fuerte (Base64) por JVM option y reiniciar dominio.
+
+### 3) Hay fotos en BD pero no se ven
+
+Normalmente faltan archivos en disco. Verificar:
+
+- que existan en `APP_UPLOAD_DIR/{username}/`
+- que `ruta_archivo`, `ruta_thumbnail`, `ruta_web` sean solo nombres de archivo
+- que la foto esté `estado='APROBADA'` y `activo=1`
 
 ---
 

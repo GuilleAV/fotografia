@@ -1,13 +1,14 @@
 package ar.com.gav.backend.fotografo.mapper;
 
 
+import ar.com.gav.backend.fotografo.config.AppConfig;
 import ar.com.gav.backend.fotografo.dto.FotoDTO;
 import ar.com.gav.backend.fotografo.entity.Categoria;
 import ar.com.gav.backend.fotografo.entity.Foto;
 
 public class FotoMapper {
 
-    private static final String BASE_URL = "http://localhost:8080/portfolio-backend/api";
+    private static final String BASE_URL = AppConfig.getPublicApiBaseUrl();
 
     public static FotoDTO toDTO(Foto entity) {
         if (entity == null) return null;

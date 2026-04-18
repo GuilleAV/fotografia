@@ -1,0 +1,10 @@
+# Copiá este archivo como app.local.properties (NO versionar)
+
+APP_PUBLIC_API_BASE_URL=http://localhost:8080/portfolio-backend/api
+APP_FRONTEND_BASE_URL=http://localhost:4200
+APP_UPLOAD_DIR=C:/portfolio-uploads
+APP_CORS_ALLOWED_ORIGINS=http://localhost:4200,http://127.0.0.1:4200
+
+# Generar secret fuerte para entorno local también
+APP_JWT_SECRET=REEMPLAZAR_CON_UN_SECRET_LARGO
+APP_JWT_EXPIRATION_MS=86400000

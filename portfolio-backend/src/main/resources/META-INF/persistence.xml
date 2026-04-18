@@ -4,11 +4,10 @@
     <persistence-unit name="portfolioPU" transaction-type="JTA">
         <jta-data-source>jdbc/portfolioFT</jta-data-source>
         <properties>
-            <!-- Configuración de conexión -->
-            <property name="javax.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
-            <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/portfolio_fotografo?serverTimezone=UTC&amp;useUnicode=true&amp;characterEncoding=UTF-8&amp;characterSetResults=UTF-8"/>
-            <property name="javax.persistence.jdbc.user" value="root"/>
-            <property name="javax.persistence.jdbc.password" value="root"/>
+            <!--
+              La conexión real se toma del DataSource JNDI: jdbc/portfolioFT
+              Configurarlo en GlassFish/Payara (local o producción).
+            -->
 
             <!-- Nivel de log de EclipseLink -->
             <property name="eclipselink.logging.level" value="FINE"/>

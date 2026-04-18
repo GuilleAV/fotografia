@@ -34,3 +34,9 @@ desktop.ini
 # Uploads (local dev)
 # ============================================
 portfolio-uploads/
+
+# ============================================
+# Local config secrets
+# ============================================
+portfolio-backend/src/main/resources/app.local.properties
+portfolio-backend/src/main/resources/email.local.properties
