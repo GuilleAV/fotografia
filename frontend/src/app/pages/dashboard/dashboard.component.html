@@ -5,8 +5,8 @@
         <h1>Subir Fotos</h1>
         <p>Gestioná tu portfolio fotográfico</p>
       </div>
-      <button class="btn-upload" (click)="showUpload = !showUpload">
-        {{ showUpload ? 'Cancelar' : '+ Subir Fotos' }}
+      <button class="btn-upload" [disabled]="uploading() || quickUploading()" (click)="toggleUploadPanel()">
+        {{ uploading() || quickUploading() ? 'Subiendo...' : (showUpload ? 'Cancelar' : '+ Subir Fotos') }}
       </button>
     </div>
 
@@ -218,6 +218,25 @@
                 }
               </tbody>
             </table>
+          </div>
+        }
+
+        @if (uploading()) {
+          <div class="upload-progress card-surface" role="status" aria-live="polite">
+            <div class="upload-progress-head">
+              <strong>Subiendo lote...</strong>
+              <span>{{ uploadProcessed() }} / {{ uploadTotal() }} ({{ uploadPercent() }}%)</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" [style.width.%]="uploadPercent()"></div>
+            </div>
+            <div class="upload-progress-meta">
+              <span>✅ {{ uploadSucceeded() }}</span>
+              <span>❌ {{ uploadFailed() }}</span>
+              @if (uploadCurrentFile()) {
+                <span class="current-file">Actual: {{ uploadCurrentFile() }}</span>
+              }
+            </div>
           </div>
         }
 

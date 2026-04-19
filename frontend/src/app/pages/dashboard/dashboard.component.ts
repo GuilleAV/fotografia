@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FotoService } from '../../core/services/foto.service';
 import { CategoriaService } from '../../core/services/categoria.service';
@@ -43,6 +43,16 @@ export class DashboardComponent implements OnInit {
   uploadMessage = signal<string | null>(null);
   uploadSuccess = signal(false);
   dragActive = signal(false);
+  uploadTotal = signal(0);
+  uploadProcessed = signal(0);
+  uploadSucceeded = signal(0);
+  uploadFailed = signal(0);
+  uploadCurrentFile = signal<string | null>(null);
+  uploadPercent = computed(() => {
+    const total = this.uploadTotal();
+    if (total <= 0) return 0;
+    return Math.round((this.uploadProcessed() / total) * 100);
+  });
 
   quickUploading = signal(false);
   quickMessage = signal<string | null>(null);
@@ -61,6 +71,21 @@ export class DashboardComponent implements OnInit {
   uploadQueue = signal<UploadItem[]>([]);
   modoLote = signal<'compacto' | 'detalle'>('detalle');
   private uploadItemId = 1;
+
+  toggleUploadPanel() {
+    if (this.uploading() || this.quickUploading()) {
+      return;
+    }
+    this.showUpload = !this.showUpload;
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  preventCloseDuringUpload(event: BeforeUnloadEvent) {
+    if (this.uploading() || this.quickUploading()) {
+      event.preventDefault();
+      event.returnValue = 'Hay una subida en curso. Si salís ahora, se interrumpe.';
+    }
+  }
 
   ngOnInit() {
     this.fotoService.listarMisFotos().subscribe({
@@ -245,6 +270,11 @@ export class DashboardComponent implements OnInit {
     this.uploading.set(true);
     this.uploadMessage.set(null);
     this.uploadSuccess.set(false);
+    this.uploadTotal.set(items.length);
+    this.uploadProcessed.set(0);
+    this.uploadSucceeded.set(0);
+    this.uploadFailed.set(0);
+    this.uploadCurrentFile.set(null);
 
     this.subirEnLote(0, 0, 0);
   }
@@ -257,6 +287,7 @@ export class DashboardComponent implements OnInit {
       this.uploadMessage.set(mensaje);
       this.uploadSuccess.set(fallidas === 0);
       this.uploading.set(false);
+      this.uploadCurrentFile.set(null);
 
       if (fallidas === 0) {
         this.uploadQueue.set([]);
@@ -269,6 +300,7 @@ export class DashboardComponent implements OnInit {
     }
 
     const item = items[index];
+    this.uploadCurrentFile.set(item.file.name);
 
     this.fotoService.subirFoto(
       item.file,
@@ -278,9 +310,15 @@ export class DashboardComponent implements OnInit {
       item.comentario
     ).subscribe({
       next: (_response: FileUploadResponse) => {
+        this.uploadProcessed.set(index + 1);
+        this.uploadSucceeded.set(exitosas + 1);
+        this.uploadFailed.set(fallidas);
         this.subirEnLote(index + 1, exitosas + 1, fallidas);
       },
       error: () => {
+        this.uploadProcessed.set(index + 1);
+        this.uploadSucceeded.set(exitosas);
+        this.uploadFailed.set(fallidas + 1);
         this.subirEnLote(index + 1, exitosas, fallidas + 1);
       },
     });

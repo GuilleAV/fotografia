@@ -98,6 +98,26 @@ export interface FotoEstadoRequest {
   comentario?: string;
 }
 
+export interface FotoEstadoLoteRequest {
+  ids: number[];
+  estado: 'APROBADA' | 'RECHAZADA';
+}
+
+export interface FotoEstadoLoteDetalle {
+  idFoto: number | null;
+  resultado: 'PROCESADA' | 'OMITIDA' | 'ERROR';
+  mensaje: string;
+}
+
+export interface FotoEstadoLoteResponse {
+  estadoSolicitado: 'APROBADA' | 'RECHAZADA';
+  totalSolicitadas: number;
+  procesadas: number;
+  omitidas: number;
+  errores: number;
+  detalles: FotoEstadoLoteDetalle[];
+}
+
 export interface ErrorResponse {
   error: string;
 }

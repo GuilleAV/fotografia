@@ -4,7 +4,7 @@
 
     <!-- Mensaje de feedback -->
     @if (message()) {
-      <div [class]="messageType() === 'error' ? 'alert-error' : 'alert-success'">{{ message() }}</div>
+      <div [class]="messageType() === 'error' ? 'alert-error' : 'alert-success'" role="status" aria-live="polite">{{ message() }}</div>
     }
 
     <!-- Tabs -->
@@ -25,11 +25,65 @@
 
     <!-- Pendientes -->
     @if (activeTab() === 'pendientes') {
+      @if (pendientes().length > 0) {
+        <div class="bulk-bar pending-bulk">
+          <div class="bulk-info">
+            <strong>{{ selectedPendingCount() }}</strong> pendiente(s) seleccionada(s)
+
+            @if (!allPendientesVisiblesSelected() && pendientesVisibles().length > 0 && pendientesVisibles().length < pendientes().length) {
+              <button
+                type="button"
+                class="btn-link"
+                [disabled]="batchProcessing()"
+                (click)="toggleSelectPendientesVisibles(true)"
+              >
+                Seleccionar visibles
+              </button>
+            }
+
+            @if (!allPendientesSelected() && pendientes().length > 0) {
+              <button
+                type="button"
+                class="btn-link"
+                [disabled]="batchProcessing()"
+                (click)="seleccionarTodasPendientes()"
+              >
+                Seleccionar todas las pendientes ({{ pendientes().length }})
+              </button>
+            }
+          </div>
+
+          <div class="bulk-actions">
+            <button type="button" class="btn-sm btn-approve" [disabled]="!canApplyPendingBatch()" (click)="moderarPendientesSeleccion('APROBADA')">
+              {{ batchProcessing() ? 'Procesando...' : 'Aprobar seleccionadas' }}
+            </button>
+            <button type="button" class="btn-sm btn-reject" [disabled]="!canApplyPendingBatch()" (click)="moderarPendientesSeleccion('RECHAZADA')">
+              {{ batchProcessing() ? 'Procesando...' : 'Rechazar seleccionadas' }}
+            </button>
+            <button type="button" class="btn-sm btn-reset" [disabled]="selectedPendingCount() === 0 || batchProcessing()" (click)="limpiarSeleccionPendientes()">
+              Limpiar selección
+            </button>
+            @if (batchProcessing()) {
+              <span class="bulk-progress">Procesando {{ batchTotal() }} foto(s)...</span>
+            }
+          </div>
+        </div>
+      }
+
       <div class="moderation-queue">
         @for (foto of pendientes(); track foto.idFoto) {
           <div class="moderation-card">
+            <label class="card-select">
+              <input
+                type="checkbox"
+                [checked]="isSelected(foto.idFoto)"
+                [disabled]="batchProcessing()"
+                (change)="toggleSelectFoto(foto.idFoto, $any($event.target).checked)"
+                [attr.aria-label]="'Seleccionar foto pendiente ' + foto.titulo"
+              />
+            </label>
             <button class="moderation-preview" (click)="abrirPreview(foto)" type="button" aria-label="Ver foto">
-              <img [src]="foto | fotoImagenUrl:'web'" [alt]="foto.titulo" />
+              <img [src]="foto | fotoImagenUrl:'web':true" [alt]="foto.titulo" />
             </button>
             <div class="moderation-info">
               <h3>{{ foto.titulo }}</h3>
@@ -41,11 +95,12 @@
                 <span>📅 {{ foto.fechaSubida | date:'dd/MM/yyyy' }}</span>
                 <span>📂 {{ foto.categoriaNombre }}</span>
               </div>
+
               <div class="actions">
-                <button class="btn-approve" (click)="aprobar(foto)">
+                <button class="btn-approve" [disabled]="batchProcessing()" (click)="aprobar(foto)">
                   ✓ Aprobar
                 </button>
-                <button class="btn-reject" (click)="rechazar(foto)">
+                <button class="btn-reject" [disabled]="batchProcessing()" (click)="rechazar(foto)">
                   ✗ Rechazar
                 </button>
               </div>
@@ -59,47 +114,167 @@
 
     <!-- Todas -->
     @if (activeTab() === 'todas') {
+      <div class="table-toolbar">
+        <div>
+          <h2>Corregir categorías de fotos</h2>
+          <p>Solo administradores pueden editar la categoría. Revisá miniatura y estado antes de guardar.</p>
+        </div>
+
+        <div class="table-toolbar-actions">
+          <label for="filter-estado">Estado</label>
+          <select id="filter-estado" [ngModel]="filtroEstado()" (ngModelChange)="setFiltroEstado($event)">
+            @for (estado of estadoFilterOptions; track estado) {
+              <option [ngValue]="estado">{{ estado }}</option>
+            }
+          </select>
+
+          <label for="filter-categoria">Categoría</label>
+          <select id="filter-categoria" [ngModel]="filtroCategoria()" (ngModelChange)="setFiltroCategoria($event)">
+            <option [ngValue]="null">Todas</option>
+            @for (cat of categorias(); track cat.idCategoria) {
+              <option [ngValue]="cat.idCategoria">{{ cat.nombre }}</option>
+            }
+          </select>
+
+          <label for="page-size">Mostrar</label>
+          <select id="page-size" [ngModel]="pageSize()" (ngModelChange)="setPageSize($event)">
+            @for (size of pageSizeOptions; track size) {
+              <option [ngValue]="size">{{ size }}</option>
+            }
+          </select>
+          <span>{{ totalFotos() }} de {{ totalFotosGlobal() }} fotos</span>
+        </div>
+      </div>
+
+      @if (selectedCount() > 0 || totalFotos() > 0) {
+        <div class="bulk-bar">
+          <div class="bulk-info">
+            <strong>{{ selectedCount() }}</strong> seleccionada(s)
+            @if (!allFilteredSelected() && totalFotos() > 0) {
+              <button type="button" class="btn-link" [disabled]="batchProcessing()" (click)="seleccionarTodasFiltradas()">
+                Seleccionar {{ totalFotos() }} filtradas
+              </button>
+            }
+          </div>
+
+          <div class="bulk-actions">
+            <button type="button" class="btn-sm btn-approve" [disabled]="!canApplyBatch()" (click)="moderarSeleccion('APROBADA')">
+              {{ batchProcessing() ? 'Procesando...' : 'Aprobar seleccionadas' }}
+            </button>
+            <button type="button" class="btn-sm btn-reject" [disabled]="!canApplyBatch()" (click)="moderarSeleccion('RECHAZADA')">
+              {{ batchProcessing() ? 'Procesando...' : 'Rechazar seleccionadas' }}
+            </button>
+            <button type="button" class="btn-sm btn-reset" [disabled]="selectedCount() === 0 || batchProcessing()" (click)="limpiarSeleccion()">
+              Limpiar selección
+            </button>
+            @if (batchProcessing()) {
+              <span class="bulk-progress">Procesando {{ batchTotal() }} foto(s)...</span>
+            }
+          </div>
+        </div>
+      }
+
       <div class="table-wrapper">
         <table class="photo-table">
           <thead>
             <tr>
+              <th>
+                <input
+                  type="checkbox"
+                  [checked]="allPageSelected()"
+                  [disabled]="batchProcessing()"
+                  (change)="toggleSelectPagina($any($event.target).checked)"
+                  aria-label="Seleccionar fotos de esta página"
+                />
+              </th>
               <th>Foto</th>
               <th>Título</th>
+              <th>Categoría</th>
               <th>Estado</th>
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            @for (foto of todas(); track foto.idFoto) {
+            @for (foto of todasPaginadas(); track foto.idFoto) {
               <tr>
-                <td>
+                <td data-label="Selección">
+                  <input
+                    type="checkbox"
+                    [checked]="isSelected(foto.idFoto)"
+                    [disabled]="batchProcessing()"
+                    (change)="toggleSelectFoto(foto.idFoto, $any($event.target).checked)"
+                    [attr.aria-label]="'Seleccionar foto ' + foto.titulo"
+                  />
+                </td>
+                <td data-label="Foto">
                   <button class="thumb-btn" type="button" (click)="abrirPreview(foto)" aria-label="Ver foto">
-                    <img class="table-thumb" [src]="foto | fotoImagenUrl:'thumb'" [alt]="foto.titulo" />
+                    <img class="table-thumb" [src]="foto | fotoImagenUrl:'thumb':true" [alt]="foto.titulo" />
                   </button>
                 </td>
-                <td>
+                <td data-label="Título">
                   <div class="foto-titulo">{{ foto.titulo }}</div>
                   <div class="foto-meta">{{ foto.categoriaNombre }}</div>
                 </td>
-                <td>
+                <td data-label="Categoría">
+                  <div class="categoria-edit">
+                    <select
+                      [ngModel]="categoriaSeleccionada(foto)"
+                      [name]="'admin-cat-' + foto.idFoto"
+                      [disabled]="batchProcessing() || guardandoCategoria(foto.idFoto) || !tieneCategorias()"
+                      (ngModelChange)="actualizarCategoriaBorrador(foto.idFoto, $event)"
+                    >
+                      <option [ngValue]="null">Seleccionar...</option>
+                      @for (cat of categorias(); track cat.idCategoria) {
+                        <option [ngValue]="cat.idCategoria">{{ cat.nombre }}</option>
+                      }
+                    </select>
+                    <button
+                      type="button"
+                      class="btn-sm btn-save"
+                      [disabled]="!puedeGuardarCategoria(foto)"
+                      (click)="guardarCategoria(foto)"
+                    >
+                      {{ guardandoCategoria(foto.idFoto) ? '...' : 'Guardar' }}
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-sm btn-reset"
+                      [disabled]="batchProcessing() || !hayCambioCategoria(foto) || guardandoCategoria(foto.idFoto)"
+                      (click)="restablecerCategoriaBorrador(foto)"
+                    >
+                      Restablecer
+                    </button>
+                  </div>
+                </td>
+                <td data-label="Estado">
                   <span class="status-badge" [class]="'status-' + foto.estado.toLowerCase()">
                     {{ foto.estado }}
                   </span>
                 </td>
-                <td>
+                <td data-label="Acciones">
                   @if (foto.estado === 'PENDIENTE') {
-                    <button class="btn-sm btn-approve" (click)="aprobar(foto)">✓</button>
-                    <button class="btn-sm btn-reject" (click)="rechazar(foto)">✗</button>
+                    <button class="btn-sm btn-approve" [disabled]="batchProcessing()" (click)="aprobar(foto)">✓</button>
+                    <button class="btn-sm btn-reject" [disabled]="batchProcessing()" (click)="rechazar(foto)">✗</button>
                   } @else if (foto.estado === 'APROBADA') {
-                    <button class="btn-sm btn-reject" (click)="rechazar(foto)">Quitar</button>
+                    <button class="btn-sm btn-reject" [disabled]="batchProcessing()" (click)="rechazar(foto)">Rechazar</button>
                   } @else {
-                    <button class="btn-sm btn-approve" (click)="aprobar(foto)">Aprobar</button>
+                    <button class="btn-sm btn-approve" [disabled]="batchProcessing()" (click)="aprobar(foto)">Aprobar</button>
                   }
                 </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="empty-row">No hay fotos para mostrar</td>
               </tr>
             }
           </tbody>
         </table>
+      </div>
+
+      <div class="table-pagination">
+        <button type="button" class="btn-sm" [disabled]="currentPage() <= 1" (click)="prevPage()">Anterior</button>
+        <span>Página {{ currentPage() }} de {{ totalPages() }}</span>
+        <button type="button" class="btn-sm" [disabled]="currentPage() >= totalPages()" (click)="nextPage()">Siguiente</button>
       </div>
     }
   </div>
@@ -111,7 +286,7 @@
       ✕
     </button>
     <div class="preview-stage" (click)="$event.stopPropagation()">
-      <img [src]="fotoPreview() | fotoImagenUrl:'web'" [alt]="fotoPreview()!.titulo" />
+      <img [src]="fotoPreview() | fotoImagenUrl:'web':true" [alt]="fotoPreview()!.titulo" />
       <p>{{ fotoPreview()!.titulo }}</p>
     </div>
   </div>

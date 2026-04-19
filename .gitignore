@@ -40,3 +40,15 @@ portfolio-uploads/
 # ============================================
 portfolio-backend/src/main/resources/app.local.properties
 portfolio-backend/src/main/resources/email.local.properties
+
+# ============================================
+# User manuals / generated docs
+# ============================================
+MANUAL_USUARIO_SISTEMA.md
+MANUAL_USUARIO_SISTEMA.pdf
+MANUAL_USUARIO_SISTEMA_BRANDED.pdf
+CAPACITACION_INTERNA.md
+CAPACITACION_INTERNA.pdf
+DOCUMENTACION_DESARROLLADORES.md
+DOCUMENTACION_DESARROLLADORES.pdf
+DOCUMENTACION_DESARROLLADORES_BRANDED.pdf

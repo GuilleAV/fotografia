@@ -393,6 +393,41 @@ public class FotoResource {
     }
 
     @PATCH
+    @Path("/admin/estado/lote")
+    @Secured
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response cambiarEstadoLote(
+            FotoEstadoLoteDTO dto,
+            @HeaderParam("Authorization") String authHeader) {
+
+        try {
+            validarRolAdmin(authHeader);
+
+            if (dto == null || dto.getIds() == null || dto.getIds().isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(errorResponse("Debes enviar al menos un id de foto")).build();
+            }
+
+            String nuevoEstado = dto.getEstado();
+            if (nuevoEstado == null || (!nuevoEstado.equals("APROBADA") && !nuevoEstado.equals("RECHAZADA"))) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(errorResponse("Estado inválido. Use: APROBADA o RECHAZADA")).build();
+            }
+
+            LOG.info("=== ADMIN: CAMBIAR ESTADO LOTE === Total IDs: " + dto.getIds().size() + ", Estado: " + nuevoEstado);
+            FotoEstadoLoteResultadoDTO resultado = fotoService.cambiarEstadoLote(dto.getIds(), nuevoEstado);
+            return Response.ok(resultado).build();
+        } catch (SecurityException e) {
+            LOG.warning("FORBIDDEN - Batch change state: " + e.getMessage());
+            return Response.status(Response.Status.FORBIDDEN).entity(errorResponse(e.getMessage())).build();
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Error changing batch photo state", e);
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(errorResponse("Error al cambiar estado por lote: " + e.getMessage())).build();
+        }
+    }
+
+    @PATCH
     @Path("/{id}/estado")
     @Secured
     @Consumes(MediaType.APPLICATION_JSON)

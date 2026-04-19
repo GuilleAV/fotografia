@@ -24,7 +24,11 @@ export class FotoImagenUrlPipe implements PipeTransform {
   private baseUrl = environment.apiUrl;
   private auth = inject(AuthService);
 
-  transform(foto: { idFoto?: number; rutaThumbnail?: string; rutaWeb?: string; rutaArchivo?: string; estado?: string } | null | undefined, tipo: 'thumb' | 'web' | 'original' = 'thumb'): string | null {
+  transform(
+    foto: { idFoto?: number; rutaThumbnail?: string; rutaWeb?: string; rutaArchivo?: string; estado?: string; fechaActualizacion?: string } | null | undefined,
+    tipo: 'thumb' | 'web' | 'original' = 'thumb',
+    forzarToken = false,
+  ): string | null {
     if (!foto?.idFoto) {
       return null;
     }
@@ -40,16 +44,23 @@ export class FotoImagenUrlPipe implements PipeTransform {
       return null;
     }
 
-    let url = `${this.baseUrl}/fotos/${foto.idFoto}/imagen/${tipo}`;
+    const url = `${this.baseUrl}/fotos/${foto.idFoto}/imagen/${tipo}`;
+    const params = new URLSearchParams();
 
     // Si la foto no está aprobada, incluir token para verificar permisos
-    if (foto.estado !== 'APROBADA') {
+    if (forzarToken || foto.estado !== 'APROBADA') {
       const token = this.auth.getToken();
       if (token) {
-        url += `?token=${token}`;
+        params.set('token', token);
       }
     }
 
-    return url;
+    // Evita efectos de caché al cambiar estado/categoría en vistas admin
+    if (forzarToken && foto.fechaActualizacion) {
+      params.set('v', foto.fechaActualizacion);
+    }
+
+    const query = params.toString();
+    return query ? `${url}?${query}` : url;
   }
 }

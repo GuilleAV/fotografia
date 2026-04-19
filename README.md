@@ -4,6 +4,28 @@ Plataforma donde fotógrafos suben sus fotos, un administrador las modera, y el 
 
 ---
 
+## 📚 Documentación disponible
+
+### Manuales funcionales
+
+- **Manual de usuario (PDF):** [`MANUAL_USUARIO_SISTEMA.pdf`](./MANUAL_USUARIO_SISTEMA.pdf)
+- **Capacitación interna (PDF):** [`CAPACITACION_INTERNA.pdf`](./CAPACITACION_INTERNA.pdf)
+
+### Documentación técnica
+
+- **Doc para desarrolladores (PDF):** [`DOCUMENTACION_DESARROLLADORES.pdf`](./DOCUMENTACION_DESARROLLADORES.pdf)
+- **Doc para desarrolladores (MD):** [`DOCUMENTACION_DESARROLLADORES.md`](./DOCUMENTACION_DESARROLLADORES.md)
+- **Guía de deploy (local + producción):** [`DEPLOYMENT.md`](./DEPLOYMENT.md)
+
+### Fuente editable de manuales
+
+- [`MANUAL_USUARIO_SISTEMA.md`](./MANUAL_USUARIO_SISTEMA.md)
+- [`CAPACITACION_INTERNA.md`](./CAPACITACION_INTERNA.md)
+
+> Para regenerar PDFs desde los `.md`: `python generate_manual_pdf.py -i <entrada.md> -o <salida.pdf>`
+
+---
+
 ## 🏗️ Arquitectura
 
 ```
@@ -101,6 +123,7 @@ Abrir `http://localhost:4200`
 | `GET` | `/api/fotos/admin/todas` | Admin | Todas las fotos (todos los estados) |
 | `GET` | `/api/fotos/admin/pendientes` | Admin | Fotos pendientes de aprobación |
 | `PATCH` | `/api/fotos/{id}/estado` | Admin | Cambiar estado (APROBADA/RECHAZADA) |
+| `PATCH` | `/api/fotos/admin/estado/lote` | Admin | Cambiar estado por lote (resumen: procesadas/omitidas/errores) |
 
 ---
 
@@ -108,9 +131,11 @@ Abrir `http://localhost:4200`
 
 | Rol | Permisos |
 |-----|----------|
-| **FOTOGRAFO** | Subir fotos, ver/editar/eliminar sus propias fotos |
+| **FOTOGRAFO** | Subir fotos, ver/editar/eliminar sus propias fotos (no puede cambiar categoría post-subida) |
 | **ADMIN** | Todo lo de FOTOGRAFO + moderar fotos, ver todas las fotos |
 | **SUPER_ADMIN** | Todo lo de ADMIN + gestionar usuarios |
+
+> **Regla de negocio vigente:** el cambio de `idCategoria` en fotos existentes es **solo admin/super-admin** (validado también en backend).
 
 ---
 
@@ -217,6 +242,13 @@ Se usan **Angular Signals** (no NgRx):
 - `AuthService`: token, user, role como signals computados
 - Persistencia en `localStorage`
 - HTTP interceptor auto-agrega JWT a cada request
+
+### Funcionalidades destacadas de operación
+
+- **Dashboard:** subida rápida y subida por lote con progreso visual (contador, porcentaje, barra, éxitos/fallos, archivo actual).
+- **Admin/Pendientes:** moderación individual por card + moderación por lote (selección visibles / todas pendientes).
+- **Admin/Todas:** filtros por estado/categoría, paginación (10/20/50), edición de categoría admin-only, moderación por lote filtrada.
+- **Responsive:** paneles adaptados para móvil (acciones y filtros optimizados para touch).
 
 ---
 

@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Foto, FileUploadResponse, FotoUpdateRequest, FotoEstadoRequest } from '../models';
+import { Foto, FileUploadResponse, FotoUpdateRequest, FotoEstadoRequest, FotoEstadoLoteRequest, FotoEstadoLoteResponse } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class FotoService {
@@ -76,6 +76,10 @@ export class FotoService {
 
   cambiarEstado(id: number, data: FotoEstadoRequest): Observable<Foto> {
     return this.http.patch<Foto>(`${this.apiUrl}/${id}/estado`, data);
+  }
+
+  cambiarEstadoLote(data: FotoEstadoLoteRequest): Observable<FotoEstadoLoteResponse> {
+    return this.http.patch<FotoEstadoLoteResponse>(`${this.apiUrl}/admin/estado/lote`, data);
   }
 
   descargarOriginal(id: number): Observable<Blob> {

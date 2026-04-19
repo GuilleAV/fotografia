@@ -5,6 +5,7 @@ import ar.com.gav.backend.fotografo.config.AppConfig;
 import ar.com.gav.backend.fotografo.dao.FotoDAO;
 import ar.com.gav.backend.fotografo.dto.FileUploadResponseDTO;
 import ar.com.gav.backend.fotografo.dto.FotoDTO;
+import ar.com.gav.backend.fotografo.dto.FotoEstadoLoteResultadoDTO;
 import ar.com.gav.backend.fotografo.dto.FotoUpdateDTO;
 import ar.com.gav.backend.fotografo.entity.Categoria;
 import ar.com.gav.backend.fotografo.entity.Foto;
@@ -16,7 +17,9 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import java.io.File;
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -270,6 +273,9 @@ public class FotoService extends BaseService<Foto> {
         if (dto.getDescripcion() != null) foto.setDescripcion(dto.getDescripcion());
         if (dto.getComentario() != null) foto.setComentario(dto.getComentario());
         if (dto.getIdCategoria() != null) {
+            if (!esAdmin(username)) {
+                throw new SecurityException("Solo administradores pueden cambiar la categoría");
+            }
             Categoria cat = em.find(Categoria.class, dto.getIdCategoria());
             if (cat != null) foto.setCategoria(cat);
         }
@@ -339,6 +345,68 @@ public class FotoService extends BaseService<Foto> {
 
         em.merge(foto);
         return FotoMapper.toDTO(foto);
+    }
+
+    /**
+     * Cambia estado por lote (solo admin en resource).
+     * No falla todo el lote ante errores puntuales: devuelve resumen.
+     */
+    public FotoEstadoLoteResultadoDTO cambiarEstadoLote(List<Integer> ids, String nuevoEstado) {
+        FotoEstadoLoteResultadoDTO resultado = new FotoEstadoLoteResultadoDTO();
+        resultado.setEstadoSolicitado(nuevoEstado);
+        resultado.setTotalSolicitadas(ids != null ? ids.size() : 0);
+
+        if (ids == null || ids.isEmpty()) {
+            return resultado;
+        }
+
+        Set<Integer> procesados = new HashSet<>();
+
+        for (Integer id : ids) {
+            if (id == null) {
+                resultado.setOmitidas(resultado.getOmitidas() + 1);
+                resultado.agregarDetalle(null, "OMITIDA", "ID nulo");
+                continue;
+            }
+
+            if (!procesados.add(id)) {
+                resultado.setOmitidas(resultado.getOmitidas() + 1);
+                resultado.agregarDetalle(id, "OMITIDA", "ID duplicado en el lote");
+                continue;
+            }
+
+            try {
+                Foto foto = em.find(Foto.class, id);
+                if (foto == null) {
+                    resultado.setErrores(resultado.getErrores() + 1);
+                    resultado.agregarDetalle(id, "ERROR", "Foto no encontrada");
+                    continue;
+                }
+
+                if (nuevoEstado.equals(foto.getEstado())) {
+                    resultado.setOmitidas(resultado.getOmitidas() + 1);
+                    resultado.agregarDetalle(id, "OMITIDA", "La foto ya estaba en estado " + nuevoEstado);
+                    continue;
+                }
+
+                foto.setEstado(nuevoEstado);
+                if ("RECHAZADA".equals(nuevoEstado)) {
+                    foto.setActivo(false);
+                } else if ("APROBADA".equals(nuevoEstado)) {
+                    foto.setActivo(true);
+                }
+
+                em.merge(foto);
+                resultado.setProcesadas(resultado.getProcesadas() + 1);
+                resultado.agregarDetalle(id, "PROCESADA", "Estado actualizado");
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Error procesando foto en lote: " + id, e);
+                resultado.setErrores(resultado.getErrores() + 1);
+                resultado.agregarDetalle(id, "ERROR", "No se pudo procesar el cambio de estado");
+            }
+        }
+
+        return resultado;
     }
 
     /**

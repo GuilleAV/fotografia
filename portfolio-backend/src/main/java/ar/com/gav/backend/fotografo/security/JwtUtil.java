@@ -4,6 +4,8 @@ import ar.com.gav.backend.fotografo.config.AppConfig;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,12 +21,51 @@ public class JwtUtil {
     private static final String INSECURE_DEFAULT_SECRET = "CHANGE_ME_IN_PRODUCTION_WITH_A_LONG_RANDOM_SECRET";
 
     private static final String SECRET_KEY = AppConfig.getJwtSecret();
+    private static final byte[] SIGNING_KEY = resolveSigningKey(SECRET_KEY);
 
     private static final long EXPIRACION_MS = AppConfig.getJwtExpirationMs();
 
     static {
         if (INSECURE_DEFAULT_SECRET.equals(SECRET_KEY)) {
             LOG.severe("JWT usa secret por defecto. Configurá APP_JWT_SECRET antes de producción.");
+        }
+
+        if (SIGNING_KEY.length < 32) {
+            LOG.warning("APP_JWT_SECRET es corto para HS256. Recomendado: al menos 32 bytes de entropía.");
+        }
+    }
+
+    private static byte[] resolveSigningKey(String rawSecret) {
+        String secret = rawSecret == null ? "" : rawSecret.trim();
+
+        if (secret.isEmpty()) {
+            throw new IllegalStateException("APP_JWT_SECRET no puede estar vacío");
+        }
+
+        byte[] decoded = tryDecodeBase64(secret);
+        if (decoded != null && decoded.length > 0) {
+            if (decoded.length < 32) {
+                LOG.warning("APP_JWT_SECRET Base64 es corto para HS256. Recomendado: al menos 32 bytes de entropía.");
+            }
+            LOG.info("JWT secret cargado como Base64/URL-safe Base64");
+            return decoded;
+        }
+
+        LOG.info("JWT secret cargado como texto plano UTF-8");
+        return secret.getBytes(StandardCharsets.UTF_8);
+    }
+
+    private static byte[] tryDecodeBase64(String secret) {
+        try {
+            return Base64.getDecoder().decode(secret);
+        } catch (IllegalArgumentException ignored) {
+            // intenta formato URL-safe
+        }
+
+        try {
+            return Base64.getUrlDecoder().decode(secret);
+        } catch (IllegalArgumentException ignored) {
+            return null;
         }
     }
 
@@ -38,7 +79,7 @@ public class JwtUtil {
                     .setSubject(username)
                     .setIssuedAt(ahora)
                     .setExpiration(expiracion)
-                    .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                    .signWith(SignatureAlgorithm.HS256, SIGNING_KEY)
                     .compact();
 
             LOG.info("Token generated successfully for: " + username);
@@ -51,7 +92,7 @@ public class JwtUtil {
 
     public static boolean validarToken(String token) {
         try {
-            Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token);
+            Jwts.parser().setSigningKey(SIGNING_KEY).parseClaimsJws(token);
             LOG.fine("Token validation OK");
             return true;
         } catch (io.jsonwebtoken.ExpiredJwtException e) {
@@ -69,7 +110,7 @@ public class JwtUtil {
     public String obtenerUsername(String token) {
         try {
             Claims claims = Jwts.parser()
-                    .setSigningKey(SECRET_KEY)
+                    .setSigningKey(SIGNING_KEY)
                     .parseClaimsJws(token)
                     .getBody();
             return claims.getSubject();
