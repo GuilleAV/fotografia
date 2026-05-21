@@ -8,7 +8,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_LEFT, TA_CENTER
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle
 
 
 ROOT = Path(__file__).resolve().parent
@@ -43,6 +43,25 @@ def draw_page_chrome(canvas, doc, title: str, subtitle: str) -> None:
     canvas.drawString(doc.leftMargin, 14, title)
     canvas.drawRightString(width - doc.rightMargin, 14, f"Página {canvas.getPageNumber()}")
 
+    canvas.restoreState()
+
+
+def draw_cover_band(canvas, doc) -> None:
+    canvas.saveState()
+    width, height = A4
+    accent = colors.HexColor("#c6933f")
+    soft = colors.HexColor("#f4ecdd")
+    dark = colors.HexColor("#1a1815")
+
+    canvas.setFillColor(soft)
+    canvas.rect(0, height - 180, width, 180, stroke=0, fill=1)
+
+    canvas.setFillColor(accent)
+    canvas.rect(0, height - 38, width, 14, stroke=0, fill=1)
+
+    canvas.setFont("Helvetica-Bold", 10)
+    canvas.setFillColor(dark)
+    canvas.drawString(doc.leftMargin, height - 28, "SENTIR FOTOGRÁFICO")
     canvas.restoreState()
 
 
@@ -130,6 +149,16 @@ def build_pdf(md_text: str, output_path: Path, title: str, author: str, subtitle
         spaceAfter=6,
     )
 
+    cover_note_style = ParagraphStyle(
+        "CoverNote",
+        parent=normal_style,
+        alignment=TA_CENTER,
+        textColor=colors.HexColor("#756f63"),
+        fontSize=9.5,
+        leading=13,
+        spaceAfter=0,
+    )
+
     doc = SimpleDocTemplate(
         str(output_path),
         pagesize=A4,
@@ -148,14 +177,31 @@ def build_pdf(md_text: str, output_path: Path, title: str, author: str, subtitle
     story.append(Paragraph("SENTIR FOTOGRÁFICO", cover_subtitle_style))
     story.append(Paragraph(escape(title), cover_title_style))
     story.append(Paragraph(escape(subtitle), cover_subtitle_style))
-    story.append(Spacer(1, 28))
-    story.append(Paragraph(f"<b>Documento:</b> {escape(title)}", cover_meta_style))
-    story.append(Paragraph(f"<b>Autor:</b> {escape(author)}", cover_meta_style))
-    story.append(Paragraph(f"<b>Fecha:</b> {generated_on}", cover_meta_style))
-    story.append(Spacer(1, 30))
+    story.append(Spacer(1, 24))
+
+    meta_table = Table(
+        [
+            [Paragraph("<b>Documento</b>", cover_meta_style), Paragraph(escape(title), cover_meta_style)],
+            [Paragraph("<b>Autor</b>", cover_meta_style), Paragraph(escape(author), cover_meta_style)],
+            [Paragraph("<b>Fecha</b>", cover_meta_style), Paragraph(generated_on, cover_meta_style)],
+        ],
+        colWidths=[100, 280],
+        hAlign="CENTER",
+    )
+    meta_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#ffffff")),
+        ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#ddd5c6")),
+        ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#e6dfd2")),
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+        ("LEFTPADDING", (0, 0), (-1, -1), 12),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+    ]))
+    story.append(meta_table)
+    story.append(Spacer(1, 26))
     story.append(Paragraph(
-        "Este documento forma parte de la documentación institucional del sistema de gestión y publicación fotográfica.",
-        cover_meta_style,
+        "Este documento integra la documentación institucional del sistema de gestión y publicación fotográfica.",
+        cover_note_style,
     ))
     story.append(PageBreak())
 
@@ -199,7 +245,7 @@ def build_pdf(md_text: str, output_path: Path, title: str, author: str, subtitle
 
     doc.build(
         story,
-        onFirstPage=lambda canvas, doc: draw_page_chrome(canvas, doc, title, subtitle),
+        onFirstPage=lambda canvas, doc: (draw_cover_band(canvas, doc), draw_page_chrome(canvas, doc, title, subtitle)),
         onLaterPages=lambda canvas, doc: draw_page_chrome(canvas, doc, title, subtitle),
     )
 

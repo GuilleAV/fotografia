@@ -116,7 +116,6 @@
     @if (activeTab() === 'todas') {
       <div class="table-toolbar">
         <div>
-          <h2>Corregir categorías de fotos</h2>
           <p>Solo administradores pueden editar la categoría. Revisá miniatura y estado antes de guardar.</p>
         </div>
 
@@ -252,14 +251,16 @@
                   </span>
                 </td>
                 <td data-label="Acciones">
-                  @if (foto.estado === 'PENDIENTE') {
-                    <button class="btn-sm btn-approve" [disabled]="batchProcessing()" (click)="aprobar(foto)">✓</button>
-                    <button class="btn-sm btn-reject" [disabled]="batchProcessing()" (click)="rechazar(foto)">✗</button>
-                  } @else if (foto.estado === 'APROBADA') {
-                    <button class="btn-sm btn-reject" [disabled]="batchProcessing()" (click)="rechazar(foto)">Rechazar</button>
-                  } @else {
-                    <button class="btn-sm btn-approve" [disabled]="batchProcessing()" (click)="aprobar(foto)">Aprobar</button>
-                  }
+                  <div class="action-buttons">
+                    @if (foto.estado === 'PENDIENTE') {
+                      <button class="btn-sm btn-approve" [disabled]="batchProcessing()" (click)="aprobar(foto)">✓</button>
+                      <button class="btn-sm btn-reject" [disabled]="batchProcessing()" (click)="rechazar(foto)">✗</button>
+                    } @else if (foto.estado === 'APROBADA') {
+                      <button class="btn-sm btn-reject" [disabled]="batchProcessing()" (click)="rechazar(foto)">Rechazar</button>
+                    } @else {
+                      <button class="btn-sm btn-approve" [disabled]="batchProcessing()" (click)="aprobar(foto)">Aprobar</button>
+                    }
+                  </div>
                 </td>
               </tr>
             } @empty {

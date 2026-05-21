@@ -365,6 +365,12 @@ h1 {
   color: #5b5244;
 }
 
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
 .empty-row {
   text-align: center;
   color: var(--color-muted);
@@ -464,8 +470,22 @@ h1 {
     grid-template-columns: 100px 1fr;
   }
 
+  .photo-table td[data-label='Acciones'] {
+    align-items: start;
+  }
+
+  .photo-table td[data-label='Acciones'] .action-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem;
+    width: 100%;
+  }
+
   .photo-table td[data-label='Acciones'] .btn-sm {
-    margin-bottom: 0.3rem;
+    width: 100%;
+    min-height: 38px;
+    margin: 0;
+    padding: 0.55rem 0.4rem;
   }
 
   .status-badge {
